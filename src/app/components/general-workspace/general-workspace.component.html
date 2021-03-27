@@ -1,0 +1,26 @@
+<ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs nav-justified">
+    <li [ngbNavItem]="1">
+      <a ngbNavLink>Announcement and Rules</a>
+      <ng-template ngbNavContent>
+        <app-announcements></app-announcements>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="2">
+      <a ngbNavLink>Calendar</a>
+      <ng-template ngbNavContent>
+        <p>This is tab 2.</p>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="3" *ngIf="isLoggedIn">
+      <a ngbNavLink>Reservation</a>
+      <ng-template ngbNavContent>
+        <p>This is tab 3.</p>
+      </ng-template>
+    </li>
+</ul>
+  <!-- This is where the contents of the tabs would be placed.
+      The contents were denoted by ngbNavContent under each list item. -->
+<div [ngbNavOutlet]="nav" class="mt-2"></div>
+  
+  <!-- <pre>Active: {{ active }}</pre> -->
+  

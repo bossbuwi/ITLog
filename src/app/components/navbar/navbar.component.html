@@ -1,36 +1,18 @@
 <nav class="navbar navbar-light bg-light">
   <span class="navbar-brand">ITLog</span>
   <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
-  <form *ngIf="!loggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+  <form *ngIf="!isLoggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
     <input class="form-control form-control-sm mr-2" type="username" placeholder="Username" aria-label="Username" formControlName="username" required>
     <input class="form-control form-control-sm mr-2" type="password" placeholder="Password" aria-label="Password" formControlName="password" required>
     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Login</button>
   </form>
-  <button *ngIf="loggedIn" class="btn btn-outline-primary my-2 my-sm-0"(click)="logOut()">Logout</button>
+  <div class="nav-item" ngbDropdown *ngIf="isLoggedIn">
+    <a class="nav-link" ngbDropdownToggle id="optionsDropdown" role="button">Welcome {{username}}!</a>
+    <div ngbDropdownMenu aria-labelledby="optionsDropdown" class="dropdown-menu dropdown-menu-right">
+      <a ngbDropdownItem href="#" *ngIf="isAdmin">Dashboard</a>
+      <a ngbDropdownItem href="#" (click)="logOut()">Logout</a>
+    </div>
+  </div>
+  <!-- <button *ngIf="isLoggedIn" class="btn btn-outline-primary my-2 my-sm-0"(click)="logOut()">Logout</button> -->
 </nav>
-<ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs nav-justified">
-  <li [ngbNavItem]="1">
-    <a ngbNavLink>Announcement and Rules</a>
-    <ng-template ngbNavContent>
-      <!-- <p>This is tab 1.</p> -->
-      <app-announcements></app-announcements>
-    </ng-template>
-  </li>
-  <li [ngbNavItem]="2">
-    <a ngbNavLink>Calendar</a>
-    <ng-template ngbNavContent>
-      <p>This is tab 2.</p>
-    </ng-template>
-  </li>
-  <li [ngbNavItem]="3" *ngIf="loggedIn">
-    <a ngbNavLink>Reservation</a>
-    <ng-template ngbNavContent>
-      <p>This is tab 3.</p>
-    </ng-template>
-  </li>
-</ul>
-<!-- This is where the contents of the tabs would be placed.
-    The contents were denoted by ngbNavContent under each list item. -->
-<div [ngbNavOutlet]="nav" class="mt-2"></div>
-
-<!-- <pre>Active: {{ active }}</pre> -->
+<app-general-workspace></app-general-workspace>
