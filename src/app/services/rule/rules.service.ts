@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
-import { Rule } from "../model/rule";
+import { Rule } from "../../model/rule";
 
 @Injectable({
   providedIn: 'root'

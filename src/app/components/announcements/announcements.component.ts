@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { Rule } from "../../model/rule";
-import { RulesService } from "../../services/rules.service";
+import { RulesService } from "../../services/rule/rules.service";
 
 @Component({
   selector: 'app-announcements',

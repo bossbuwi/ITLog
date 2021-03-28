@@ -1,9 +1,16 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { catchError, map } from 'rxjs/operators';
+import { of } from 'rxjs';
 
-import { LoginService } from './services/login.service';
+import { LoginService } from './services//login/login.service';
+import { LoggerService } from './services/logger/logger.service';
+import { ConfigurationService } from './services/configuration/configuration.service';
+
+import { ConfigNames, RestUrls, LoggingLevel } from './model/constants/properties';
+import { Configuration } from './model/configuration';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -27,8 +34,47 @@ import { GeneralWorkspaceComponent } from './components/general-workspace/genera
     HttpClientModule
   ],
   providers: [
-    LoginService
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      multi: true,
+      deps: [
+        HttpClient,
+        ConfigurationService
+      ]
+    },
+    LoginService,
+    LoggerService,
+    ConfigurationService
   ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+export function initializeApp(http: HttpClient, configService: ConfigurationService): (() => Promise<boolean>) {
+  return (): Promise<boolean> => {
+    return new Promise<boolean>(resolve => {
+      http.get(RestUrls.REST_CONFIG_URL)
+        .pipe(
+          map((data: any) => {
+            console.log(data);
+            localStorage.clear();
+            for (var key in data) {
+              if (data.hasOwnProperty(key)) {
+                var config: Configuration = new Configuration;
+                config = data[key];
+                console.log(config);
+                configService.writeConfiguration(config);
+              }
+            }
+            resolve(true);
+          }),
+          catchError(() => {
+            localStorage.setItem('offline', 'Y');
+            resolve(true);
+            return of({});
+          })
+        ).subscribe();
+    });
+  };
+}
