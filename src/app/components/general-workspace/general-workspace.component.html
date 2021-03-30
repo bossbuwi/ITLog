@@ -8,7 +8,7 @@
     <li [ngbNavItem]="2">
       <a ngbNavLink>Calendar</a>
       <ng-template ngbNavContent>
-        <p>This is tab 2.</p>
+        <app-main-calendar></app-main-calendar>
       </ng-template>
     </li>
     <li [ngbNavItem]="3" *ngIf="isLoggedIn">
@@ -21,6 +21,5 @@
   <!-- This is where the contents of the tabs would be placed.
       The contents were denoted by ngbNavContent under each list item. -->
 <div [ngbNavOutlet]="nav" class="mt-2"></div>
-  
+
   <!-- <pre>Active: {{ active }}</pre> -->
-  

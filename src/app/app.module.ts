@@ -18,13 +18,15 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { AnnouncementsComponent } from './components/announcements/announcements.component';
 import { GeneralWorkspaceComponent } from './components/general-workspace/general-workspace.component';
+import { MainCalendarComponent } from './components/main-calendar/main-calendar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
     AnnouncementsComponent,
-    GeneralWorkspaceComponent
+    GeneralWorkspaceComponent,
+    MainCalendarComponent
   ],
   imports: [
     BrowserModule,
@@ -51,6 +53,12 @@ import { GeneralWorkspaceComponent } from './components/general-workspace/genera
 })
 export class AppModule { }
 
+/**
+ *
+ * @param http
+ * @param configService
+ * @returns
+ */
 export function initializeApp(http: HttpClient, configService: ConfigurationService): (() => Promise<boolean>) {
   return (): Promise<boolean> => {
     return new Promise<boolean>(resolve => {
@@ -58,7 +66,7 @@ export function initializeApp(http: HttpClient, configService: ConfigurationServ
         .pipe(
           map((data: any) => {
             console.log(data);
-            localStorage.clear();
+            sessionStorage.clear();
             for (var key in data) {
               if (data.hasOwnProperty(key)) {
                 var config: Configuration = new Configuration;
@@ -70,7 +78,7 @@ export function initializeApp(http: HttpClient, configService: ConfigurationServ
             resolve(true);
           }),
           catchError(() => {
-            localStorage.setItem('offline', 'Y');
+            sessionStorage.setItem('offline', 'Y');
             resolve(true);
             return of({});
           })
