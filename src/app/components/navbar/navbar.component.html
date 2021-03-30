@@ -1,0 +1,35 @@
+<!-- This is the template for the navbar component.
+  -- It contains the login form, the brand logo, brand name,
+  -- app title and the options menu. -->
+<nav class="navbar navbar-light bg-light">
+  <span class="navbar-brand">ITLog</span>
+  <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
+  <!-- Start of the login form -->
+  <form *ngIf="!isLoggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+    <input
+      [ngClass]="{'is-invalid' : hasErrors}"
+      class="form-control form-control-sm mr-2"
+      type="username"
+      placeholder="Username"
+      aria-label="Username"
+      formControlName="username"
+      #t="ngbTooltip"
+      ngbTooltip="Username or password is incorrect."
+      triggers="manual"
+      (invalid)="t.open()">
+    <input [ngClass]="{'is-invalid' : hasErrors}" class="form-control form-control-sm mr-2" type="password" placeholder="Password" aria-label="Password" formControlName="password">
+    <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Login</button>
+  </form>
+  <!-- End of the login form -->
+  <!-- Start of the options dropdown menu. -->
+  <div class="nav-item" ngbDropdown *ngIf="isLoggedIn">
+    <a class="nav-link" ngbDropdownToggle id="optionsDropdown" role="button">Welcome {{username}}!</a>
+    <div ngbDropdownMenu aria-labelledby="optionsDropdown" class="dropdown-menu dropdown-menu-right">
+      <a ngbDropdownItem href="#" *ngIf="isAdmin">Dashboard</a>
+      <a ngbDropdownItem href="#" (click)="logOut()">Logout</a>
+    </div>
+  </div>
+  <!-- End of the options dropdown menu. -->
+</nav>
+<!-- The general workspace component is below. -->
+<app-general-workspace></app-general-workspace>
