@@ -19,6 +19,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { AnnouncementsComponent } from './components/announcements/announcements.component';
 import { GeneralWorkspaceComponent } from './components/general-workspace/general-workspace.component';
 import { MainCalendarComponent } from './components/main-calendar/main-calendar.component';
+import { ReservationComponent } from './components/reservation/reservation.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { MainCalendarComponent } from './components/main-calendar/main-calendar.
     NavbarComponent,
     AnnouncementsComponent,
     GeneralWorkspaceComponent,
-    MainCalendarComponent
+    MainCalendarComponent,
+    ReservationComponent
   ],
   imports: [
     BrowserModule,
