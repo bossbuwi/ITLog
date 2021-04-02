@@ -1,14 +1,19 @@
-<ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs nav-justified">
-    <li [ngbNavItem]="1" routerLink="/announcement">
-      <a ngbNavLink>Announcements and Rules</a>
-      <!-- <ng-template ngbNavContent>
-        <app-announcements></app-announcements>
-      </ng-template> -->
-    </li>
-    <li [ngbNavItem]="2" routerLink="/calendar">
-      <a ngbNavLink>Calendar</a>
-    </li>
-    <li [ngbNavItem]="3" *ngIf="isLoggedIn" routerLink="/reservation">
-      <a ngbNavLink>Reservation</a>
-    </li>
-</ul>
+<div class="container-fluid">
+  <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs">
+      <li [ngbNavItem]="1" routerLink="/announcement">
+        <a ngbNavLink>Announcements and Rules</a>
+        <!-- <ng-template ngbNavContent>
+          <app-announcements></app-announcements>
+        </ng-template> -->
+      </li>
+      <li [ngbNavItem]="2" routerLink="/calendar">
+        <a ngbNavLink>Calendar</a>
+      </li>
+      <li [ngbNavItem]="3" *ngIf="isLoggedIn" routerLink="/reservation">
+        <a ngbNavLink>Reservation</a>
+      </li>
+      <li [ngbNavItem]="4" *ngIf="isAdmin" routerLink="/reports">
+        <a ngbNavLink>Reports</a>
+      </li>
+  </ul>
+</div>

@@ -4,11 +4,13 @@ export class ConfigNames {
 }
 
 export class RestUrls {
-    public static REST_CONFIG_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/configuration';
-    public static REST_RULES_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/rules';
+    public static REST_CONFIG_URL: string = 'http://127.0.0.1:8000/api/config';
+    public static REST_RULES_URL: string = 'http://127.0.0.1:8000/api/rules';
     public static REST_DEV_LOGIN_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/users';
     public static REST_LDAP_URL: string = 'http://127.0.0.1:8000/api/login/';
     public static REST_ADMIN_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/admins';
+    public static REST_EVENTS_TODAY_URL: string = 'http://127.0.0.1:8000/api/day';
+    public static REST_EVENT_POST_URL: string = 'http://127.0.0.1:8000/api/reserve';
 }
 
 export class ErrorCodes {

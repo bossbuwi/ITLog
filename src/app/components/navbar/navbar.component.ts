@@ -29,18 +29,18 @@ export class NavbarComponent implements OnInit {
     //creates the login formgroup object
     this.loginForm = this.createLoginFormGroup();
     //subscribes to the user login status from the loginservice
-    this.loginService.getUserStatus().subscribe(status => {
+    this.loginService.subscribeUserStatus().subscribe(status => {
       this.isLoggedIn = status;
     });
     //subscribes to the user login rank from the loginservice
-    this.loginService.getUserRank().subscribe(rank => {
+    this.loginService.subscribeUserRank().subscribe(rank => {
       this.isAdmin = rank;
     });
     //subscribes to the username status from the loginservice
-    this.loginService.getUsername().subscribe(username => {
+    this.loginService.subscribeUsername().subscribe(username => {
       this.username = username;
     });
-    this.loginService.checkLoginErrors().subscribe(loginErrors => {
+    this.loginService.subscribeLoginErrors().subscribe(loginErrors => {
       this.checkErrors(loginErrors);
     });
   }

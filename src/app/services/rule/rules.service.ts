@@ -15,7 +15,8 @@ import { RestUrls } from "../../model/constants/properties";
 export class RulesService {
   private className: string = RulesService.name;
   private rulesFullyLoaded: boolean;
-  rules: Rule[] = [];
+  // rules: Rule[] = [];
+  rules: Rule[];
 
   constructor(private http: HttpClient, private log: LoggerService, private confService: ConfigurationService) {
     this.initiateRulesService();
@@ -23,6 +24,7 @@ export class RulesService {
 
   initiateRulesService(): void {
     this.rulesFullyLoaded = false;
+    this.rules = [];
     if (!this.confService.isConfigServerOnline) {
       this.rulesFullyLoaded = true;
     }
