@@ -1,3 +1,98 @@
 <div class="container-fluid">
-  <ngb-datepicker #calendar></ngb-datepicker>
+  <!-- Row 1
+    -- This is the main row for all of the items -->
+  <div class="row">
+    <!-- Row 1, Column 1
+      -- This is the column for the calendar -->
+    <div class="col">
+      <!-- Row 1, Column 1, Row 1-->
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col">
+            <ngb-datepicker #picker [(ngModel)]="calendar" (dateSelect)="onDateSelection($event)" (navigate)="date = $event.next" outsideDays="hidden"></ngb-datepicker>
+          </div>
+        </div>
+        <!-- End of Row 1, Column 1, Row 1-->
+        <!-- Row 1, Column 1, Row 2-->
+        <div class="row">
+          <div class="col-12">
+            <form>
+              <div class="form-row">
+                <div class="form-group col">
+                  <label for="username">Username</label>
+                  <input type="text" [ngModel]="eventDetail.user" class="form-control" id="username" name="username" disabled>
+                </div>
+                <div class="form-group col">
+                  <label for="zone">Zone</label>
+                  <input type="text" [ngModel]="eventDetail.zone" class="form-control" id="zone" name="zone" disabled>
+                </div>
+                <div class="form-group col">
+                  <label for="eventtype">Event Type</label>
+                  <input type="text" [ngModel]="eventDetail.type" class="form-control" id="eventtype" name="eventtype" disabled>
+                </div>
+                <div class="form-group col">
+                  <label for="jiracase">JIRA Case</label>
+                  <input type="text" [ngModel]="eventDetail.jiraCase" class="form-control" id="jiracase" name="jiracase" disabled>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-3">
+                  <label for="startdate">Start Date</label>
+                  <input type="text" [ngModel]="eventDetail.startDate" class="form-control" id="startdate" name="startdate" disabled>
+                </div>
+                <div class="form-group col-3">
+                  <label for="enddate">End Date</label>
+                  <input type="text" [ngModel]="eventDetail.endDate" class="form-control" id="enddate" name="enddate" disabled>
+                </div>
+                <div class="form-group col-6">
+                  <label for="apiused">APIs Used</label>
+                  <input type="text" [ngModel]="eventDetail.apiUsed" class="form-control" id="apiused" name="apiused" disabled>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label for="featureon">Features turned ON</label>
+                  <input type="text" [ngModel]="eventDetail.featureOn" class="form-control" id="featureon" name="featureon" disabled>
+                </div>
+                <div class="form-group col-6">
+                  <label for="featureoff">Features turned OFF</label>
+                  <input type="text" [ngModel]="eventDetail.featureOff" class="form-control" id="featureoff" name="featureoff" disabled>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- End of Row 1, Column 1, Row 2-->
+      </div>
+    </div>
+    <!-- End of Row 1, Column 1-->
+    <!-- Row 1, Column 2
+      -- This is the column for the event details
+      -- selected by the user from column 1 of
+      -- the same row. -->
+    <div class="col">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">User</th>
+            <th scope="col">Event</th>
+            <th scope="col">Start Date</th>
+            <th scope="col">End Date</th>
+            <th scope="col">API</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let event of events; index as i" (click)="rowClicked(event._id)">
+            <th scope="row"><a>{{ event.user }}</a></th>
+            <td><a>{{ event.type }}</a></td>
+            <td><a>{{ event.startDate }}</a></td>
+            <td><a>{{ event.endDate }}</a></td>
+            <td><a>{{ event.apiUsed }}</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- End of Row 1, Column 2 -->
+  </div>
+  <!-- End of Row 1 -->
 </div>

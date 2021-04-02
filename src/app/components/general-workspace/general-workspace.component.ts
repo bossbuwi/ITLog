@@ -10,12 +10,16 @@ import { LoginService } from "../../services/login/login.service";
 export class GeneralWorkspaceComponent implements OnInit {
   active = 1;
   isLoggedIn: boolean;
+  isAdmin: boolean;
 
   constructor(private loginService: LoginService) {}
 
   ngOnInit(): void {
-    this.loginService.getUserStatus().subscribe(status => {
+    this.loginService.subscribeUserStatus().subscribe(status => {
       this.isLoggedIn = status;
+    });
+    this.loginService.subscribeUserRank().subscribe(rank => {
+      this.isAdmin = rank;
     });
   }
 

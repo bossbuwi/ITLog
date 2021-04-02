@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
@@ -22,6 +22,8 @@ export class LoginService {
   private usernameChange: Subject<string>; //used for transmitting changes on user's id
   private loginErrorChange: Subject<number>; //used for transmitting errors on login
 
+  private isUserOnline: boolean; //stores the user's last online status
+
   constructor(private http: HttpClient, private log: LoggerService, private confService: ConfigurationService) {
     this.initializeService();
   }
@@ -38,13 +40,13 @@ export class LoginService {
     this.loginErrorChange = new Subject<number>();
     //initiates the user object that will hold the user's details
     this.currentUser = new User();
-    //subscribes to the previously initiated subjects to listen
-    //for changes and update the correponding user's details
+    //subscribes to the previously initiated subjects to listen for changes
+    //also updates the local properties to the subscriptions' current state
     this.userStatusChange.subscribe((status) => {
-      this.currentUser.isLoggedIn = status;
+      this.isUserOnline = status;
     });
     this.userRankChange.subscribe((rank) => {
-      this.currentUser.isAdmin = rank;
+      this.currentUser.admin = rank;
     });
     this.usernameChange.subscribe((username) => {
       this.currentUser.username = username;
@@ -60,36 +62,32 @@ export class LoginService {
     this.loginErrorChange.next(ErrorCodes.NO_ERRORS);
   }
 
-  /**
-   * Checks the login status of the user.
-   * @returns boolean True if the user is still logged in, false if otherwise.
-   */
-  getUserStatus(): Observable<boolean> {
+  subscribeUserStatus(): Observable<boolean> {
     return this.userStatusChange.asObservable();
   }
 
-  /**
-   *
-   * @returns
-   */
-  getUserRank(): Observable<boolean> {
+  subscribeUserRank(): Observable<boolean> {
     return this.userRankChange.asObservable();
   }
 
-  /**
-   *
-   * @returns
-   */
-  getUsername(): Observable<string> {
+  subscribeUsername(): Observable<string> {
     return this.usernameChange.asObservable();
   }
 
-  /**
-   *
-   * @returns
-   */
-  checkLoginErrors(): Observable<number> {
+  subscribeLoginErrors(): Observable<number> {
     return this.loginErrorChange.asObservable();
+  }
+
+  getLoginStatus(): boolean {
+    return this.isUserOnline;
+  }
+
+  getAdminStatus(): boolean {
+    return this.currentUser.admin;
+  }
+
+  getUsername(): string {
+    return this.currentUser.username;
   }
 
   /**
@@ -98,7 +96,7 @@ export class LoginService {
    * @param password The user's password.
    * @returns boolean True if the user's credentials are valid, false if otherwise.
    */
-  loginUser(username: string, password: string): void {
+  private loginUser(username: string, password: string): void {
     this.log.logVerbose(this.className, 'loginUser', 'Generating REST login query.');
     this.log.logVerbose(this.className, 'loginUser', RestUrls.REST_DEV_LOGIN_URL + '?username=' + username + '&password=password');
     var restQuery: string = RestUrls.REST_DEV_LOGIN_URL + '?username=' + username + '&password=' + password;
@@ -211,17 +209,21 @@ export class LoginService {
   validateUserLDAP(username: string, password: string): void {
     this.log.logVerbose(this.className, 'validateUserLDAP', 'Generating REST login query.');
     this.log.logVerbose(this.className, 'validateUserLDAP', RestUrls.REST_LDAP_URL);
-    this.http.post(RestUrls.REST_LDAP_URL,{'username': username, 'password': password}).subscribe(
+    const params: HttpParams = new HttpParams()
+      .set('username', username)
+      .set('password', password);
+    this.log.logVerbose(this.className, 'validateUserLDAP', 'Connecting to the REST server.');
+    this.http.post<User>(RestUrls.REST_LDAP_URL, params).subscribe(
       result => {
-        if (result == true) {
+        if (result.username === username) {
           this.log.logVerbose(this.className, 'validateUserLDAP', 'Valid credentials. Updating user object.');
           this.usernameChange.next(username);
           this.currentUser.password = password;
           this.userStatusChange.next(true);
-          // this.checkAdminStatus(username);
+          this.userRankChange.next(result.admin);
           this.log.logVerbose(this.className, 'validateUserLDAP', 'User with id: ' + this.currentUser.username + ' is now online.');
         } else {
-          this.log.logVerbose(this.className, 'validateUserLDAP', 'Received empty data from REST server.');
+          this.log.logVerbose(this.className, 'validateUserLDAP', 'Data mismatch with server.');
           this.log.logVerbose(this.className, 'validateUserLDAP', 'Credentials may be incorrect.');
           this.throwErrors(ErrorCodes.INCORRECT_CREDENTIALS);
         }
@@ -236,10 +238,10 @@ export class LoginService {
         this.throwErrors(ErrorCodes.SERVER_ERROR);
       }
     }, () => {
-      if (this.loginErrors === ErrorCodes.NO_ERRORS) {
-        this.log.logVerbose(this.className, 'validateUserLDAP', 'Initiating admin rank check for user with id: ' + this.currentUser.username + '.');
-        this.checkAdminStatus(this.currentUser.username);
-      }
+      // if (this.loginErrors === ErrorCodes.NO_ERRORS) {
+        // this.log.logVerbose(this.className, 'validateUserLDAP', 'Initiating admin rank check for user with id: ' + this.currentUser.username + '.');
+        // this.checkAdminStatus(this.currentUser.username);
+      // }
     });
   }
 }

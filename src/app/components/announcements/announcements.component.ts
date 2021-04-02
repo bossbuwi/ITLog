@@ -11,7 +11,7 @@ import { RulesService } from "../../services/rule/rules.service";
 export class AnnouncementsComponent implements OnInit {
   rules: Rule[];
 
-  images = [944, 1011, 984].map((n) => `https://picsum.photos/id/${n}/900/500`);
+  // images = [944, 1011, 984].map((n) => `https://picsum.photos/id/${n}/900/500`);
 
   constructor(private ruleService: RulesService) { }
 
