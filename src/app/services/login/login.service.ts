@@ -217,10 +217,10 @@ export class LoginService {
       result => {
         if (result.username === username) {
           this.log.logVerbose(this.className, 'validateUserLDAP', 'Valid credentials. Updating user object.');
-          this.usernameChange.next(username);
           this.currentUser.password = password;
-          this.userStatusChange.next(true);
+          this.usernameChange.next(username);
           this.userRankChange.next(result.admin);
+          this.userStatusChange.next(true);
           this.log.logVerbose(this.className, 'validateUserLDAP', 'User with id: ' + this.currentUser.username + ' is now online.');
         } else {
           this.log.logVerbose(this.className, 'validateUserLDAP', 'Data mismatch with server.');

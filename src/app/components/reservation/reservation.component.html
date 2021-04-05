@@ -1,11 +1,11 @@
 <div class="container-fluid" *ngIf="isLoggedIn">
   <div class="container-fluid form-title">
-    <h3 *ngIf="!eventSuccess">Log an Event</h3>
-    <h3 *ngIf="eventSuccess">Event Saved!</h3>
-    <small id="formreminder" class="form-text text-muted" *ngIf="!eventSuccess">
+    <h3 *ngIf="isEdit || isInsert">Log an Event</h3>
+    <h3 *ngIf="isConfirm">Event Saved!</h3>
+    <small id="formreminder" class="form-text text-muted" *ngIf="isEdit || isInsert">
       Fields marked with a check are required fields. The submit button would not be enabled unless required fields are filled up.
     </small>
-    <small id="formreminder" class="form-text text-muted" *ngIf="eventSuccess">
+    <small id="formreminder" class="form-text text-muted" *ngIf="isConfirm">
       The event could now be seen at the Calendar tab.
     </small>
   </div>
@@ -30,11 +30,14 @@
       <div class="form-group col-3">
         <label for="type">Event Type</label>
         <select class="custom-select" [ngClass]="{'is-valid': !eventSuccess}" id="type" name="type" formControlName="type">
-          <option>Input Cycle</option>
+          <option *ngFor="let eventType of eventTypes; let i = index" [value]="eventTypes[i]">
+            {{eventTypes[i]}}
+          </option>
+          <!-- <option>Input Cycle</option>
           <option>Close of Business</option>
           <option>Input Cycle -> Close of Business</option>
           <option>Maintenance</option>
-          <option>System Upgrade</option>
+          <option>System Upgrade</option> -->
         </select>
       </div>
       <div class="form-group col">
@@ -78,17 +81,17 @@
     <div class="form-row">
       <div class="form-group col">
         <label for="featureon">Compiled Sources</label>
-        <input type="text" class="form-control" id="compiledsources" name="featureon" aria-describedby="compiledsourcesHelp" formControlName="apiUsed">
+        <input type="text" class="form-control" id="compiledsources" name="featureon" aria-describedby="compiledsourcesHelp" formControlName="compiledSources">
         <small id="compiledsourcesHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. LEC06A,FTC0630</small>
       </div>
       <div class="form-group col">
         <label for="apiused">APIs Used</label>
-        <input type="text" class="form-control" id="apiused" name="apiused" aria-describedby="apiusedHelp" formControlName="compiledSources">
+        <input type="text" class="form-control" id="apiused" name="apiused" aria-describedby="apiusedHelp" formControlName="apiUsed">
         <small id="apiusedHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. OPAY,IPAY</small>
       </div>
     </div>
-    <button type="submit" *ngIf="!eventSuccess" class="btn btn-outline-primary" [disabled]="eventForm.invalid">Submit</button>
-    <button type="button" *ngIf="eventSuccess" class="btn btn-outline-primary" (click)="resetForm()">New Input</button>
+    <button type="submit" *ngIf="isInsert || isEdit" class="btn btn-outline-primary" [disabled]="eventForm.invalid">Submit</button>
+    <button type="button" *ngIf="isConfirm" class="btn btn-outline-primary" (click)="resetForm()">New Input</button>
   </form>
   <div class="container-fluid form-errors" *ngIf="hasErrors">
     <h6>Notes</h6>
