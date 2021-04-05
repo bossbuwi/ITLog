@@ -1,27 +1,15 @@
-# Itlog
+# ITLog
+## _The Irresistible Technical Event Logs_
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.5.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.5.<br>
+This project was made to serve as the event logger for users of the team's domain system. The version releases are [here](https://github.com/bossbuwi/itlog/releases). Current version is 0.2-dev.
 
-## Development server
+### Setup
+#### Prerequisites
+- An editor, preferably VS Code
+- Node js installed
+- Angular CLI installed globally
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+1. Clone the repository or download the code as zip and extract to a directory. This will be referred to as the _project directory_.
+2. Open command prompt on the project directory and run `npm install` to install the project's dependencies.
+3. Done. To run the project, open command prompt on the project directory and run `ng serve -open`. This would compile the project and automatically open it on the default browser once it is finished.
