@@ -59,6 +59,12 @@
                   <input type="text" [ngModel]="eventDetail.featureOff" class="form-control" id="featureoff" name="featureoff" disabled>
                 </div>
               </div>
+              <div class="form-row">
+                <div class="form-group col">
+                  <label for="featureon">Compiled Sources</label>
+                  <input type="text" [ngModel]="eventDetail.compiledSources" class="form-control" id="compiledSources" name="compiledSources" disabled>
+                </div>
+              </div>
             </form>
           </div>
         </div>
@@ -82,7 +88,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let event of events; index as i" (click)="rowClicked(event._id)">
+          <tr *ngFor="let event of events; index as i" (click)="rowClicked(event._id)" [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="left">
+            <ng-template #popTitle>Options</ng-template>
+            <ng-template #popContent>
+              <small *ngIf="!isOnline">Please log in to access.</small>
+              <a class="pLink text-primary" (click)="editEvent(event._id)" *ngIf="isOnline">Edit</a>
+              &nbsp;&nbsp;&nbsp;
+              <a class="pLink text-primary" (click)="deleteEvent(event._id)" *ngIf="isAdmin">Delete</a>
+            </ng-template>
             <th scope="row"><a>{{ event.user }}</a></th>
             <td><a>{{ event.type }}</a></td>
             <td><a>{{ event.startDate }}</a></td>

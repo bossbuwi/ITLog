@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import {NgbDateStruct, NgbCalendar, NgbDate} from '@ng-bootstrap/ng-bootstrap';
 
 import { Event } from "../../model/event";
 
 import { LoggerService } from "../../services/logger/logger.service";
 import { EventsService } from "../../services/events/events.service";
+import { LoginService } from 'src/app/services/login/login.service';
 
 @Component({
   selector: 'app-main-calendar',
@@ -13,15 +15,18 @@ import { EventsService } from "../../services/events/events.service";
 })
 export class MainCalendarComponent implements OnInit {
   private className: string = MainCalendarComponent.name;
+  isOnline: boolean;
+  isAdmin: boolean;
   events: Event[];
-  eventsEmpty: boolean;
   eventDetail: Event;
   calendar: NgbDateStruct;
   date: {year: number, month: number};
 
-  constructor(private log: LoggerService, private eventServ: EventsService, private cal: NgbCalendar) { }
+  constructor(private log: LoggerService, private router: Router, private eventServ: EventsService, private login:LoginService, private cal: NgbCalendar) { }
 
   ngOnInit(): void {
+    this.isOnline = this.login.getLoginStatus();
+    this.isAdmin = this.login.getAdminStatus();
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
     this.eventDetail = new Event();
     var today = new Date();
@@ -32,9 +37,12 @@ export class MainCalendarComponent implements OnInit {
         this.eventDetail = this.events[0];
       }
     });
-    this.eventServ.returnedEmptyEvents().subscribe(status => {
-      this.eventsEmpty = status;
+    this.login.subscribeUserStatus().subscribe(status => {
+      this.isOnline = status;
     });
+    this.login.subscribeUserRank().subscribe(rank => {
+      this.isAdmin = rank;
+    })
   }
 
   onDateSelection(date: NgbDate): void {
@@ -55,4 +63,14 @@ export class MainCalendarComponent implements OnInit {
     this.eventDetail = this.events.find(x => x._id == parseInt(id));
   }
 
+  editEvent(id: string): void {
+    console.log('Edit: ' + id);
+    this.eventServ.fetchEvent(id);
+    this.router.navigate(['/reservation']);
+  }
+
+  deleteEvent(id: string): void {
+    console.log('Delete: ' + id);
+    this.router.navigate(['/reservation']);
+  }
 }

@@ -5,3 +5,13 @@
 ngb-datepicker {
   margin-left: 13rem;
 }
+
+/* Make the hyperlinks look like bootstrap link
+ * even without the href atrribute */
+.pLink {
+  cursor:pointer;
+}
+
+.pLink:hover {
+  text-decoration:underline;
+}

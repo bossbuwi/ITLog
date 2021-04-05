@@ -4,8 +4,8 @@ export class Event {
   system: string;
   zone: string;
   type: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   apiUsed: string;
   compiledSources: string;
   featureOn: string;

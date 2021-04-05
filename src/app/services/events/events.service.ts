@@ -20,8 +20,9 @@ export class EventsService {
   eventsForDay: Event[]; //holds the events for the selected day
 
   private eventChange: Subject<boolean>; //subject to broadcast if event fetching is finished
-  private eventFetchEmpty: Subject<boolean>; //subject to broadcast if event insert is finished
-  private eventInsertSuccess: Subject<boolean>; //subject to broadcast if event insert is finished
+  private eventInsertSuccess: Subject<Event>; //subject to broadcast if event insert is finished
+  private eventFetchedForEdit: Subject<Event>; //subject to broadcast if event insert is finished
+  private eventEditSuccess: Subject<Event>; //subject to broadcast if event insert is finished
 
   constructor(private http: HttpClient, private log: LoggerService, private configService: ConfigurationService) {
     this.initializeService();
@@ -34,8 +35,9 @@ export class EventsService {
     this.log.logVerbose(this.className, 'initializeService', 'Initiating ' + this.className + '.');
     this.log.logVerbose(this.className, 'initializeService', 'Initiating subjects.');
     this.eventChange = new Subject<boolean>();
-    this.eventFetchEmpty = new Subject<boolean>();
-    this.eventInsertSuccess = new Subject<boolean>();
+    this.eventInsertSuccess = new Subject<Event>();
+    this.eventFetchedForEdit = new Subject<Event>();
+    this.eventEditSuccess = new Subject<Event>();
     this.log.logVerbose(this.className, 'initializeService', 'Initiating event arrays.');
     this.eventsForMonth = [];
     this.eventsForDay= [];
@@ -45,9 +47,16 @@ export class EventsService {
    *
    * @returns
    */
-  insertEventCompleted(): Observable<boolean> {
+  insertEventCompleted(): Observable<Event> {
     this.log.logVerbose(this.className, 'insertEventCompleted', 'Inserting events to REST server complete.');
+    this.log.logVerbose(this.className, 'insertEventCompleted', 'Returning inserted object back to the calling component.');
     return this.eventInsertSuccess.asObservable();
+  }
+
+  editEventCompleted(): Observable<Event> {
+    this.log.logVerbose(this.className, 'insertEventCompleted', 'Inserting events to REST server complete.');
+    this.log.logVerbose(this.className, 'insertEventCompleted', 'Returning inserted object back to the calling component.');
+    return this.eventEditSuccess.asObservable();
   }
 
   /**
@@ -59,19 +68,18 @@ export class EventsService {
     return this.eventChange.asObservable();
   }
 
-  returnedEmptyEvents(): Observable<boolean> {
-    return this.eventFetchEmpty.asObservable();
+  getEventForEditCompleted(): Observable<Event> {
+    return this.eventFetchedForEdit.asObservable();
   }
 
   getEventsForDay(date: Date): Event[] {
-    this.eventFetchEmpty.next(true);
     this.eventChange.next(false);
     this.eventsForDay = [];
     var pipe: DatePipe = new DatePipe('en-US');
     var fDate: string = pipe.transform(date, 'yyyy-MM-dd');
     const params: HttpParams = new HttpParams()
       .set('selectedDay', fDate)
-    this.http.get(RestUrls.REST_EVENTS_TODAY_URL, { params: params }).subscribe(
+    this.http.get(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
       data => {
         console.log(data)
         for (var key in data) {
@@ -82,7 +90,6 @@ export class EventsService {
           }
         }
         if (this.eventsForDay.length == 0) {
-          this.eventFetchEmpty.next(false);
           var evnt: Event = new Event();
           evnt._id = null;
           evnt.user = '';
@@ -112,7 +119,7 @@ export class EventsService {
     var dateS: string = pipe.transform(date, 'yyyy-MM-dd');
     const params: HttpParams = new HttpParams()
       .set('selectedDay', dateS);
-    this.http.get(RestUrls.REST_EVENTS_TODAY_URL, { params: params }).subscribe(
+    this.http.get(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
       data => {
         console.log(data);
         for (var key in data) {
@@ -136,30 +143,74 @@ export class EventsService {
    * @param form The form group containing the details of the event to be submitted.
    */
   submitEvent(form: FormGroup): void {
-    this.log.logVerbose(this.className, 'submitEvent', 'Formatting dates.');
-    //modify the event's start and end dates to a format recognizable by the REST server
-    form.controls['startDate'].setValue(this.getStringDate(form.controls['startDate'].value));
-    form.controls['endDate'].setValue(this.getStringDate(form.controls['endDate'].value));
-    this.log.logVerbose(this.className, 'submitEvent', 'Creating a new event object.');
     //create a new event object
+    //this would be sent to the REST server as a parameter
+    this.log.logVerbose(this.className, 'submitEvent', 'Creating a new event object.');
     var event = new Event();
-    this.log.logVerbose(this.className, 'submitEvent', "Translating the form's values into the event object's properties.");
     //copy the value of the form's fields into the new event object
+    this.log.logVerbose(this.className, 'submitEvent', "Translating the form's values into the event object's properties.");
     event = form.value;
     this.log.logVerbose(this.className, 'submitEvent', "Logging the event object's properties.");
     this.log.logVerbose(this.className, 'submitEvent', event);
     this.log.logVerbose(this.className, 'submitEvent', 'Connecting to the REST server.');
-    this.http.post(RestUrls.REST_EVENT_POST_URL, { params: event }).subscribe(
+    //send the event object to the REST server
+    console.log('submit event');
+    console.log(event);
+    this.http.post<Event>(RestUrls.REST_POST_EVENT, { params: event }).subscribe(
       data => {
+        //based on the REST server's specs, the server would reply with the object inserted
+        //check if the reply contains an object
         if (data) {
+          //if an object is present, send it back to the reservation component
           this.log.logVerbose(this.className, 'submitEvent', 'Server replied with a confirmation object.');
-          this.eventInsertSuccess.next(true);
+          console.log('received from server')
+          console.log(data)
+          this.eventInsertSuccess.next(data);
         } else {
+          //this is weird scenario because the server must reply either with an object or an error
+          //if the server replied with a blank data, something is wrong
+          //log it for now
           this.log.logError(this.className, 'submitEvent', 'Server replied with blank data.');
         }
       }, error => {
         this.log.logError(this.className, 'submitEvent', 'Server replied with errors.');
         this.log.logError(this.className, 'submitEvent', error);
+      }, () => {
+
+      }
+    );
+  }
+
+  fetchEvent(id: string): void {
+    const params: HttpParams = new HttpParams()
+      .set('_id', id);
+    this.http.get<Event>(RestUrls.REST_GET_EVENT, {params: params}).subscribe(
+      data => {
+        var evnt = new Event();
+        evnt = data;
+        this.eventFetchedForEdit.next(evnt);
+      }, error => {
+        console.log(error);
+      }, () => {
+
+      }
+    );
+  }
+
+  editEvent(form: FormGroup, id: number): void {
+    this.log.logVerbose(this.className, 'editEvent', 'Trying to get event with id: ' + id + ' from REST server.');
+    this.log.logVerbose(this.className, 'editEvent', 'Setting parameters for http request.');
+    var evnt = new Event();
+    evnt = form.value;
+    evnt._id = id;
+    this.http.put<Event>(RestUrls.REST_POST_EVENT, { params: evnt }).subscribe(
+      data => {
+        var evnt: Event = new Event();
+        evnt = data;
+        console.log(evnt);
+        this.eventEditSuccess.next(evnt);
+      }, error => {
+        console.log(error);
       }, () => {
 
       }
@@ -172,9 +223,9 @@ export class EventsService {
    * @param datepicker The date to be converted, preferrably a NgbDate object
    * @returns Date converted to a string and formatted as yyyy-MM-dd
    */
-  private getStringDate(datepicker: any): string {
-    var pipe: DatePipe = new DatePipe('en-US');
-    var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
-    return pipe.transform(wDate, 'yyyy-MM-dd');
-  }
+  // private getStringDate(datepicker: any): string {
+  //   var pipe: DatePipe = new DatePipe('en-US');
+  //   var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
+  //   return pipe.transform(wDate, 'yyyy-MM-dd');
+  // }
 }
