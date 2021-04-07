@@ -1,8 +1,10 @@
 <div class="container-fluid" *ngIf="isLoggedIn">
   <div class="container-fluid form-title">
-    <h3 *ngIf="isEdit || isInsert">Log an Event</h3>
+    <h3 *ngIf="isInsert">Log an Event</h3>
+    <h3 *ngIf="isEdit">Edit Event #{{eventModel._id}} by {{eventModel.user}} on {{eventModel.system}}-{{eventModel.zone}}</h3>
     <h3 *ngIf="isConfirm">Event Saved!</h3>
     <small id="formreminder" class="form-text text-muted" *ngIf="isEdit || isInsert">
+      <b>Warning! Navigating to other tabs would clear any data entered.</b>
       Fields marked with a check are required fields. The submit button would not be enabled unless required fields are filled up.
     </small>
     <small id="formreminder" class="form-text text-muted" *ngIf="isConfirm">
@@ -21,7 +23,7 @@
       </div>
       <div class="form-group col-2">
         <label for="zone">Zone</label>
-        <select class="custom-select" [ngClass]="{'is-valid': !eventSuccess}" id="zone" name="zone" formControlName="zone">
+        <select class="custom-select" [ngClass]="{'is-valid': isInsert || isEdit}" id="zone" name="zone" formControlName="zone">
           <option>O4</option>
           <option>O5</option>
           <option>O4-O5</option>
@@ -29,7 +31,7 @@
       </div>
       <div class="form-group col-3">
         <label for="type">Event Type</label>
-        <select class="custom-select" [ngClass]="{'is-valid': !eventSuccess}" id="type" name="type" formControlName="type">
+        <select class="custom-select" [ngClass]="{'is-valid': isInsert || isEdit}" id="type" name="type" formControlName="type">
           <option *ngFor="let eventType of eventTypes; let i = index" [value]="eventTypes[i]">
             {{eventTypes[i]}}
           </option>
@@ -43,14 +45,14 @@
       <div class="form-group col">
         <label for="jiracase">JIRA Case</label>
         <input type="text" class="form-control" id="jiraCase" name="jiraCase" aria-describedby="jiracaseHelp" formControlName="jiraCase">
-        <small id="jiracaseHelp" class="form-text text-muted">Please use comma to separate entries. e.g. MD-12345,MD-12346</small>
+        <small id="jiracaseHelp" class="form-text text-muted">Please use comma and space to separate entries. e.g. MD-12345, MD-12346</small>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group col-2">
         <label for="startDate">Start Date</label>
         <div class="input-group">
-          <input class="form-control" [ngClass]="{'is-valid': !eventSuccess, 'is-invalid': hasErrors}" placeholder="yyyy-mm-dd" id="startDate" name="startDate" ngbDatepicker #startDate="ngbDatepicker" aria-describedby="startDateHelp" formControlName="startDate">
+          <input class="form-control" [ngClass]="{'is-valid': isInsert || isEdit, 'is-invalid': hasErrors}" placeholder="yyyy-mm-dd" id="startDate" name="startDate" ngbDatepicker #startDate="ngbDatepicker" aria-describedby="startDateHelp" formControlName="startDate">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" (click)="startDate.toggle()" type="button">Calendar</button>
           </div>
@@ -60,7 +62,7 @@
       <div class="form-group col-2">
         <label for="startDate">End Date</label>
         <div class="input-group">
-          <input class="form-control" [ngClass]="{'is-valid': !eventSuccess, 'is-invalid': hasErrors}" placeholder="yyyy-mm-dd" id="endDate" name="endDate" ngbDatepicker #endDate="ngbDatepicker" aria-describedby="endDateHelp" formControlName="endDate">
+          <input class="form-control" [ngClass]="{'is-valid': isInsert || isEdit, 'is-invalid': hasErrors}" placeholder="yyyy-mm-dd" id="endDate" name="endDate" ngbDatepicker #endDate="ngbDatepicker" aria-describedby="endDateHelp" formControlName="endDate">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" (click)="endDate.toggle()" type="button">Calendar</button>
           </div>
@@ -70,24 +72,24 @@
       <div class="form-group col">
         <label for="featureon">Features turned ON</label>
         <input type="text" class="form-control" id="featureon" name="featureon" aria-describedby="featureonHelp" formControlName="featureOn">
-        <small id="featureonHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. CAP205,CAP207</small>
+        <small id="featureonHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. CAP205, CAP207</small>
       </div>
       <div class="form-group col">
         <label for="featureoff">Features turned OFF</label>
         <input type="text" class="form-control" id="featureoff" name="featureoff" aria-describedby="featureoffHelp" formControlName="featureOff">
-        <small id="featureoffHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. CRE010,CSW220</small>
+        <small id="featureoffHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. CRE010, CSW220</small>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group col">
         <label for="featureon">Compiled Sources</label>
         <input type="text" class="form-control" id="compiledsources" name="featureon" aria-describedby="compiledsourcesHelp" formControlName="compiledSources">
-        <small id="compiledsourcesHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. LEC06A,FTC0630</small>
+        <small id="compiledsourcesHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. LEC06A, FTC0630</small>
       </div>
       <div class="form-group col">
         <label for="apiused">APIs Used</label>
         <input type="text" class="form-control" id="apiused" name="apiused" aria-describedby="apiusedHelp" formControlName="apiUsed">
-        <small id="apiusedHelp" class="form-text text-muted">Please use comma to separate mutiple entries. e.g. OPAY,IPAY</small>
+        <small id="apiusedHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. OPAY, IPAY</small>
       </div>
     </div>
     <button type="submit" *ngIf="isInsert || isEdit" class="btn btn-outline-primary" [disabled]="eventForm.invalid">Submit</button>

@@ -1,1 +1,93 @@
-<p>reports works!</p>
+<div class="container-fluid">
+  <h4>Reports</h4>
+  <form class="form-inline" [formGroup]="reportForm" (ngSubmit)="onSubmit($event)" novalidate>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="btn-group mt-8 mb-2 mr-sm-2" role="group" aria-label="Query">
+          <button type="submit" class="btn btn-outline-primary" id="search">Search</button>
+          <button type="submit" class="btn btn-outline-primary" id="generate">Generate Report</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label mb-2 mr-sm-2">Zone</label>
+        <select class="custom-select mb-2 mr-sm-2" formControlName="zone">
+          <option>All</option>
+          <option>O4</option>
+          <option>O5</option>
+          <option>O4-O5</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label mb-2 mr-sm-2">Event Type</label>
+        <select class="custom-select mb-2 mr-sm-2" formControlName="type">
+          <option>All</option>
+          <option>Input Cycle</option>
+          <option>Close of Business</option>
+          <option>Input Cycle -> Close of Business</option>
+          <option>Maintenance</option>
+          <option>System Upgrade</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label mb-2 mr-sm-2" for="startDate">Start Date</label>
+          <div class="input-group">
+            <input class="form-control" placeholder="yyyy-mm-dd" id="startDate" name="startDate" ngbDatepicker #startDate="ngbDatepicker"formControlName="startDate">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary mb-2 mr-sm-2" (click)="startDate.toggle()" type="button">Calendar</button>
+            </div>
+          </div>
+      </div>
+      <div class="form-group">
+        <label class="col-form-label mb-2 mr-sm-2" for="endDate">End Date</label>
+          <div class="input-group">
+            <input class="form-control mb-2" placeholder="yyyy-mm-dd" id="endDate" name="endDate" ngbDatepicker #endDate="ngbDatepicker" formControlName="endDate">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary mb-2 mr-sm-2" (click)="endDate.toggle()" type="button">Calendar</button>
+            </div>
+          </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input mb-2 mr-sm-2" type="checkbox" id="cursysver" formControlName="cursysver" (change)="onCheckboxChange()">
+          <label class="form-check-label mb-2 mr-sm-2" for="cursysver">Current System Version</label>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div class="container-fluid">
+    <table class="table table-hover table-sm">
+      <thead class="thead-light">
+        <tr class="d-flex">
+          <th scope="col" class="col-1">User</th>
+          <th scope="col" class="col-1">System</th>
+          <th scope="col" class="col-1">Zone</th>
+          <th scope="col" class="col-1">Event</th>
+          <th scope="col" class="col-1">Start Date</th>
+          <th scope="col" class="col-1">End Date</th>
+          <th scope="col" class="col-1">JIRA Case</th>
+          <th scope="col" class="col-1">API</th>
+          <th scope="col" class="col-1">Feature ON</th>
+          <th scope="col" class="col-1">Feature OFF</th>
+          <th scope="col" class="col-2">Compiled Sources</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="d-flex" *ngFor="let event of eventResults; index as i">
+          <th class="col-1" scope="row"><a>{{ event.user }}</a></th>
+          <td class="col-1"><a>{{ event.system }}</a></td>
+          <td class="col-1"><a>{{ event.zone }}</a></td>
+          <td class="col-1"><a>{{ event.type }}</a></td>
+          <td class="col-1"><a>{{ event.startDate }}</a></td>
+          <td class="col-1"><a>{{ event.endDate }}</a></td>
+          <td class="col-1"><a>{{ event.jiraCase }}</a></td>
+          <td class="col-1"><a>{{ event.apiUsed }}</a></td>
+          <td class="col-1"><a>{{ event.featureOn }}</a></td>
+          <td class="col-1"><a>{{ event.featureOff }}</a></td>
+          <td class="col-2"><a>{{ event.compiledSources }}</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -15,3 +15,7 @@ ngb-datepicker {
 .pLink:hover {
   text-decoration:underline;
 }
+
+.table-hover {
+  table-layout: fixed
+}

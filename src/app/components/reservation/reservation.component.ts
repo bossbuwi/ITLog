@@ -18,7 +18,7 @@ import { LoggerService } from "../../services/logger/logger.service";
 export class ReservationComponent implements OnInit {
   private className: string = ReservationComponent.name;
   private username: string;
-  private eventModel: Event;
+  eventModel: Event;
   isInsert: boolean; //flag to signify that form is in insert mode
   isEdit: boolean; //flag to signify that form is in edit mode
   isConfirm: boolean; //flag to signify that form is in confirm mode

@@ -79,16 +79,16 @@
     <div class="col">
       <table class="table table-hover">
         <thead>
-          <tr>
-            <th scope="col">User</th>
-            <th scope="col">Event</th>
-            <th scope="col">Start Date</th>
-            <th scope="col">End Date</th>
-            <th scope="col">API</th>
+          <tr class="d-flex">
+            <th scope="col" class="col-2">User</th>
+            <th scope="col" class="col-2">Event</th>
+            <th scope="col" class="col-2">Start Date</th>
+            <th scope="col" class="col-2">End Date</th>
+            <th scope="col" class="col-4">API</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let event of events; index as i" (click)="rowClicked(event._id)" [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="left">
+          <tr class="d-flex" *ngFor="let event of events; index as i" (click)="rowClicked(event._id)" [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="left">
             <ng-template #popTitle>Options</ng-template>
             <ng-template #popContent>
               <small *ngIf="!isOnline">Please log in to access.</small>
@@ -96,11 +96,11 @@
               &nbsp;&nbsp;&nbsp;
               <a class="pLink text-primary" (click)="deleteEvent(event._id)" *ngIf="isAdmin">Delete</a>
             </ng-template>
-            <th scope="row"><a>{{ event.user }}</a></th>
-            <td><a>{{ event.type }}</a></td>
-            <td><a>{{ event.startDate }}</a></td>
-            <td><a>{{ event.endDate }}</a></td>
-            <td><a>{{ event.apiUsed }}</a></td>
+            <th class="col-2" scope="row"><a>{{ event.user }}</a></th>
+            <td class="col-2"><a>{{ event.type }}</a></td>
+            <td class="col-2"><a>{{ event.startDate }}</a></td>
+            <td class="col-2"><a>{{ event.endDate }}</a></td>
+            <td class="col-4"><a>{{ event.apiUsed }}</a></td>
           </tr>
         </tbody>
       </table>

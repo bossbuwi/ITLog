@@ -6,7 +6,8 @@ import { Event } from "../../model/event";
 
 import { LoggerService } from "../../services/logger/logger.service";
 import { EventsService } from "../../services/events/events.service";
-import { LoginService } from 'src/app/services/login/login.service';
+import { LoginService } from "../../services/login/login.service";
+import { NavService } from "../../services/nav/nav.service";
 
 @Component({
   selector: 'app-main-calendar',
@@ -22,7 +23,10 @@ export class MainCalendarComponent implements OnInit {
   calendar: NgbDateStruct;
   date: {year: number, month: number};
 
-  constructor(private log: LoggerService, private router: Router, private eventServ: EventsService, private login:LoginService, private cal: NgbCalendar) { }
+  constructor(private log: LoggerService,
+    private router: Router, private eventServ: EventsService,
+    private login:LoginService, private cal: NgbCalendar,
+    private nav: NavService) { }
 
   ngOnInit(): void {
     this.isOnline = this.login.getLoginStatus();
@@ -66,6 +70,7 @@ export class MainCalendarComponent implements OnInit {
   editEvent(id: string): void {
     console.log('Edit: ' + id);
     this.eventServ.fetchEvent(id);
+    this.nav.setActiveTab(3);
     this.router.navigate(['/reservation']);
   }
 

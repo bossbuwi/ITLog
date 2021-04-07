@@ -9,7 +9,8 @@ import { ConfigurationService } from "../configuration/configuration.service";
 import { LoggerService } from "../logger/logger.service";
 
 import { Event } from "../../model/event";
-import { RestUrls, ErrorCodes } from "../../model/constants/properties";
+import { Query } from "../../model/query";
+import { RestUrls, ErrorCodes, EventTypes, EventTypesREST } from "../../model/constants/properties";
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class EventsService {
   private eventInsertSuccess: Subject<Event>; //subject to broadcast if event insert is finished
   private eventFetchedForEdit: Subject<Event>; //subject to broadcast if event insert is finished
   private eventEditSuccess: Subject<Event>; //subject to broadcast if event insert is finished
+  private eventResults: Subject<Event[]>;
 
   constructor(private http: HttpClient, private log: LoggerService, private configService: ConfigurationService) {
     this.initializeService();
@@ -38,6 +40,7 @@ export class EventsService {
     this.eventInsertSuccess = new Subject<Event>();
     this.eventFetchedForEdit = new Subject<Event>();
     this.eventEditSuccess = new Subject<Event>();
+    this.eventResults = new Subject<Event[]>();
     this.log.logVerbose(this.className, 'initializeService', 'Initiating event arrays.');
     this.eventsForMonth = [];
     this.eventsForDay= [];
@@ -70,6 +73,10 @@ export class EventsService {
 
   getEventForEditCompleted(): Observable<Event> {
     return this.eventFetchedForEdit.asObservable();
+  }
+
+  getEventResults(): Observable<Event[]> {
+    return this.eventResults.asObservable();
   }
 
   getEventsForDay(date: Date): Event[] {
@@ -217,15 +224,81 @@ export class EventsService {
     );
   }
 
-  /**
-   * Converts the date from the Bootstrap datepicker
-   * into a string.
-   * @param datepicker The date to be converted, preferrably a NgbDate object
-   * @returns Date converted to a string and formatted as yyyy-MM-dd
-   */
-  // private getStringDate(datepicker: any): string {
-  //   var pipe: DatePipe = new DatePipe('en-US');
-  //   var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
-  //   return pipe.transform(wDate, 'yyyy-MM-dd');
-  // }
+  requestReport(form: FormGroup): void {
+    var query: Query = new Query();
+    query = form.value;
+    if (form.controls['startDate'].valid) {
+      query.startDate = this.getStringDate(form.controls['startDate'].value);
+    }
+    if (form.controls['endDate'].valid) {
+      query.endDate = this.getStringDate(form.controls['endDate'].value);
+    }
+    if (form.controls['type'].value == 'All'
+      || form.controls['type'].value == '') {
+      query.type = 'All';
+    } else {
+      query.type = this.translateFormValues(form.controls['type'].value);
+    }
+    if (form.controls['zone'].value == '') {
+      query.zone = 'All';
+    }
+    if (form.controls['cursysver'].value == '') {
+      query.cursysver = false;
+    }
+    if (form.controls['requestReport'].value == '') {
+      query.requestReport = false;
+    }
+    console.log(query);
+    let params = new HttpParams();
+    Object.keys(query).forEach(key => {
+      params = params.append(key, query[key]);
+    });
+    if (query.requestReport) {
+      this.http.get(RestUrls.REST_GENERATE_REPORT, {params: params, responseType: 'blob'}).subscribe(
+        data => {
+          var file: Blob = new Blob([data],{ type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+          const dataFile = window.URL.createObjectURL(file);
+          window.open(dataFile);
+        }, error => {
+          console.log(error);
+        }, () => {
+
+        }
+      );
+    } else {
+      this.http.get<Event[]>(RestUrls.REST_GENERATE_REPORT, {params: params}).subscribe(
+        data => {
+          console.log(data);
+          this.eventResults.next(data);
+        }, error => {
+          console.log(error);
+        }, () => {
+
+        }
+      );
+    }
+  }
+
+  private getStringDate(datepicker: any): string {
+    var pipe: DatePipe = new DatePipe('en-US');
+    var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
+    return pipe.transform(wDate, 'yyyy-MM-dd');
+  }
+
+  private translateFormValues(value: string): string {
+    switch (value) {
+      case EventTypes.IC:
+        return EventTypesREST.IC
+      case EventTypes.COB:
+        return EventTypesREST.COB;
+      case EventTypes.IC_COB:
+        return EventTypesREST.IC_COB;
+      case EventTypes.MAINTENANCE:
+        return EventTypesREST.MAINTENANCE;
+      case EventTypes.SYS_UPGRADE:
+        return EventTypesREST.SYS_UPGRADE;
+      default:
+        return EventTypesREST.IC;
+    }
+  }
 }
