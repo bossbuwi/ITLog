@@ -1,14 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { LoggerService } from 'src/app/services/logger/logger.service';
 import { LoginService } from "../../services/login/login.service";
 
 import { ErrorCodes } from "../../model/constants/properties";
+import { CoreService } from 'src/app/services/core/core.service';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
+  encapsulation: ViewEncapsulation.None,
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
@@ -19,26 +22,25 @@ export class NavbarComponent implements OnInit {
   username: string; //property to hold the user's username
   hasErrors: boolean; //flag to display errors on template
   loginForm: FormGroup; //group for login form
+  FATALERROR: boolean;
 
   private password: string; //property to hold the user's password
 
-  constructor(private loginService: LoginService, private log: LoggerService) {}
+  constructor(private loginService: LoginService, private log: LoggerService,
+    private modalPopUp: NgbModal, private core: CoreService) {}
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    }
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
     //creates the login formgroup object
     this.loginForm = this.createLoginFormGroup();
     //subscribes to the user login status from the loginservice
     this.loginService.subscribeUserStatus().subscribe(status => {
       this.isLoggedIn = status;
-    });
-    //subscribes to the user login rank from the loginservice
-    this.loginService.subscribeUserRank().subscribe(rank => {
-      this.isAdmin = rank;
-    });
-    //subscribes to the username status from the loginservice
-    this.loginService.subscribeUsername().subscribe(username => {
-      this.username = username;
+      this.isAdmin = this.loginService.getAdminStatus();
+      this.username = this.loginService.getUsername();
     });
     this.loginService.subscribeLoginErrors().subscribe(loginErrors => {
       this.checkErrors(loginErrors);
@@ -134,5 +136,17 @@ export class NavbarComponent implements OnInit {
       this.password = null;
       this.log.logVerbose(this.className, 'logOut', 'User has logged out successfully.');
     }
+  }
+
+  displayAbout(modal: any): void {
+    this.modalPopUp.open(modal, { scrollable: true, size: 'lg' });
+  }
+
+  displayAdminRank(modal: any) {
+    this.modalPopUp.open(modal, { centered: true, size: 'sm' });
+  }
+
+  displayNormalRank(modal: any) {
+    this.modalPopUp.open(modal, { centered: true, size: 'sm' });
   }
 }

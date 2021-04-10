@@ -8,7 +8,7 @@ ngb-datepicker {
 
 /* Make the hyperlinks look like bootstrap link
  * even without the href atrribute */
-.pLink {
+.pLink, .list-group-item-action {
   cursor:pointer;
 }
 
@@ -18,4 +18,8 @@ ngb-datepicker {
 
 .table-hover {
   table-layout: fixed
+}
+
+.list-title {
+  margin-bottom: 10px;
 }

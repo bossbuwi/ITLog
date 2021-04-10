@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="isAdmin">
   <h4>Reports</h4>
   <form class="form-inline" [formGroup]="reportForm" (ngSubmit)="onSubmit($event)" novalidate>
     <div class="form-row">
@@ -89,5 +89,19 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+<div id="outer" class="container" *ngIf="!isLoggedIn">
+  <div id="inner">
+    <h3><span id="loading-text">Please log in to access the page.<br>
+      If you are not supposed to be in this page, please click <a href="/rules">here.</a></span></h3>
+  </div>
+</div>
+<div id="outer" class="container" *ngIf="isLoggedIn && !isAdmin">
+  <div id="inner">
+    <h3><span id="loading-text">
+      It appears that you do not have sufficient authority to access this page.
+      If you think that this is a mistake, please contact the system admins to grant you authority.<br>
+      If you are not supposed to be in this page, please click <a routerLink="/rules">here.</a></span></h3>
   </div>
 </div>

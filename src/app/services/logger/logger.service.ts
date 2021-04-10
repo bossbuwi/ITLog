@@ -1,9 +1,9 @@
-import { formatDate } from '@angular/common';
 import { Injectable } from '@angular/core';
+import { formatDate } from '@angular/common';
 
-import { ConfigNames, LoggingLevel } from "../../model/constants/properties";
+import { CoreService } from "../core/core.service";
 
-import { ConfigurationService } from "../configuration/configuration.service";
+import { ConfigNames, LoggingLevel, ErrorCodes } from "../../model/constants/properties";
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +11,13 @@ import { ConfigurationService } from "../configuration/configuration.service";
 export class LoggerService {
   private loggingLevel: string;
 
-  constructor(private configService: ConfigurationService) {
-    this.loggingLevel = LoggingLevel.VERBOSE;
-    if (this.configService.isConfigServerOnline) {
-      this.loggingLevel = configService.getConfig(ConfigNames.CONF_LOGGING_LEVEL);
+  constructor(private core: CoreService) {
+    if (this.core.getStartUpStatus() == ErrorCodes.NO_ERRORS) {
+      this.loggingLevel = core.getConfigValue(ConfigNames.CONF_LOGGING_LEVEL);
+    } else {
+      this.loggingLevel = LoggingLevel.NONE;
     }
+
   }
 
   private shouldLog(level: LoggingLevel) {

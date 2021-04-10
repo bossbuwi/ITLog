@@ -1,0 +1,21 @@
+.dropmenu {
+  cursor:pointer;
+}
+
+.frontend, .backend, .others {
+  margin-bottom: 2rem;
+}
+
+#outer {
+  width: 100%;
+  height: 80vh;
+  display: flex;
+}
+
+#inner {
+  margin: auto;
+}
+
+.manual {
+  font-style: italic;
+}

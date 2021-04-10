@@ -5,7 +5,7 @@ import { FormGroup } from '@angular/forms';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
-import { ConfigurationService } from "../configuration/configuration.service";
+import { CoreService } from "../core/core.service";
 import { LoggerService } from "../logger/logger.service";
 
 import { Event } from "../../model/event";
@@ -16,49 +16,47 @@ import { RestUrls, ErrorCodes, EventTypes, EventTypesREST } from "../../model/co
   providedIn: 'root'
 })
 export class EventsService {
-  private className: string = EventsService.name;
-  eventsForMonth: Event[]; //holds the events for the whole month
-  eventsForDay: Event[]; //holds the events for the selected day
+  private className: string = 'EventsService';
 
-  private eventChange: Subject<boolean>; //subject to broadcast if event fetching is finished
   private eventInsertSuccess: Subject<Event>; //subject to broadcast if event insert is finished
   private eventFetchedForEdit: Subject<Event>; //subject to broadcast if event insert is finished
   private eventEditSuccess: Subject<Event>; //subject to broadcast if event insert is finished
-  private eventResults: Subject<Event[]>;
+  private eventResults: Subject<Event[]>; //subject to broadcast the query results from the server
+  private eventsForTheDay: Subject<Event[]>; //subject to broadcast the events for the selected day
 
-  constructor(private http: HttpClient, private log: LoggerService, private configService: ConfigurationService) {
+  constructor(private http: HttpClient, private log: LoggerService, private configService: CoreService) {
     this.initializeService();
   }
 
   /**
-   *
+   * Initializes the events service. This creates the subjects that the service's
+   * subscribers are listening to.
    */
   private initializeService(): void {
     this.log.logVerbose(this.className, 'initializeService', 'Initiating ' + this.className + '.');
     this.log.logVerbose(this.className, 'initializeService', 'Initiating subjects.');
-    this.eventChange = new Subject<boolean>();
     this.eventInsertSuccess = new Subject<Event>();
     this.eventFetchedForEdit = new Subject<Event>();
     this.eventEditSuccess = new Subject<Event>();
     this.eventResults = new Subject<Event[]>();
-    this.log.logVerbose(this.className, 'initializeService', 'Initiating event arrays.');
-    this.eventsForMonth = [];
-    this.eventsForDay= [];
+    this.eventsForTheDay = new Subject<Event[]>();
   }
 
   /**
    *
    * @returns
    */
-  insertEventCompleted(): Observable<Event> {
-    this.log.logVerbose(this.className, 'insertEventCompleted', 'Inserting events to REST server complete.');
-    this.log.logVerbose(this.className, 'insertEventCompleted', 'Returning inserted object back to the calling component.');
+  subscribeInsertEventCompletion(): Observable<Event> {
+    this.log.logVerbose(this.className, 'subscribeInsertEventCompletion', 'A new subscriber is detected.');
     return this.eventInsertSuccess.asObservable();
   }
 
-  editEventCompleted(): Observable<Event> {
-    this.log.logVerbose(this.className, 'insertEventCompleted', 'Inserting events to REST server complete.');
-    this.log.logVerbose(this.className, 'insertEventCompleted', 'Returning inserted object back to the calling component.');
+  /**
+   *
+   * @returns
+   */
+  subscribeEditEventCompletion(): Observable<Event> {
+    this.log.logVerbose(this.className, 'subscribeEditEventCompletion', 'A new subscriber is detected.');
     return this.eventEditSuccess.asObservable();
   }
 
@@ -66,83 +64,51 @@ export class EventsService {
    *
    * @returns
    */
-  getEventsCompleted(): Observable<boolean> {
-    this.log.logVerbose(this.className, 'getEventsCompleted', 'Communication with events REST server complete.');
-    return this.eventChange.asObservable();
-  }
-
-  getEventForEditCompleted(): Observable<Event> {
+  subscribeGetEventEditCompletion(): Observable<Event> {
+    this.log.logVerbose(this.className, 'subscribeGetEventEditCompletion', 'A new subscriber is detected.');
     return this.eventFetchedForEdit.asObservable();
   }
 
-  getEventResults(): Observable<Event[]> {
+  /**
+   *
+   * @returns
+   */
+  subscribeGetEventResults(): Observable<Event[]> {
+    this.log.logVerbose(this.className, 'subscribeGetEventResults', 'A new subscriber is detected.');
     return this.eventResults.asObservable();
   }
 
-  getEventsForDay(date: Date): Event[] {
-    this.eventChange.next(false);
-    this.eventsForDay = [];
+  /**
+   *
+   * @returns
+   */
+  subscribeEventsForTheDay(): Observable<Event[]> {
+    this.log.logVerbose(this.className, 'subscribeEventsForTheDay', 'A new subscriber is detected.');
+    return this.eventsForTheDay.asObservable();
+  }
+
+  /**
+   *
+   * @param date
+   */
+  getEventsForTheDay(date: Date): void {
     var pipe: DatePipe = new DatePipe('en-US');
     var fDate: string = pipe.transform(date, 'yyyy-MM-dd');
     const params: HttpParams = new HttpParams()
       .set('selectedDay', fDate)
-    this.http.get(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
-      data => {
-        console.log(data)
-        for (var key in data) {
-          if (data.hasOwnProperty(key)) {
-            var evnt: Event = new Event();
-            evnt = data[key];
-            this.eventsForDay.push(evnt);
+      this.http.get<Event[]>(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
+        data => {
+          if (Object.keys(data).length > 0) {
+            this.eventsForTheDay.next(data)
+          } else {
+            this.eventsForTheDay.next([]);
           }
-        }
-        if (this.eventsForDay.length == 0) {
-          var evnt: Event = new Event();
-          evnt._id = null;
-          evnt.user = '';
-          evnt.zone = '';
-          evnt.type = '';
-          evnt.jiraCase = '';
-          evnt.startDate = null;
-          evnt.endDate = null
-          evnt.apiUsed = '';
-          evnt.featureOn = '';
-          evnt.featureOff = '';
-          this.eventsForDay.push(evnt);
-        }
-        this.eventChange.next(true);
-      },
-      error => {
-        console.error(error);
-      },
-      () => {
+        }, error => {
 
-    });
-    return this.eventsForDay;
-  }
+        }, () => {
 
-  getEventsForMonth(date: Date): Event[] {
-    var pipe: DatePipe = new DatePipe('en-US');
-    var dateS: string = pipe.transform(date, 'yyyy-MM-dd');
-    const params: HttpParams = new HttpParams()
-      .set('selectedDay', dateS);
-    this.http.get(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
-      data => {
-        console.log(data);
-        for (var key in data) {
-          if (data.hasOwnProperty(key)) {
-            var evnt: Event = new Event();
-            evnt = data[key];
-            this.eventsForMonth.push(evnt);
-          }
         }
-      }, error => {
-        console.error(error);
-      }, () => {
-
-      }
-    );
-    return this.eventsForMonth;
+      );
   }
 
   /**
@@ -157,12 +123,13 @@ export class EventsService {
     //copy the value of the form's fields into the new event object
     this.log.logVerbose(this.className, 'submitEvent', "Translating the form's values into the event object's properties.");
     event = form.value;
+    event.type = this.translateFormValues(form.controls['type'].value);
+    event.startDate = this.getStringDate(form.controls['startDate'].value);
+    event.endDate = this.getStringDate(form.controls['endDate'].value);
     this.log.logVerbose(this.className, 'submitEvent', "Logging the event object's properties.");
     this.log.logVerbose(this.className, 'submitEvent', event);
     this.log.logVerbose(this.className, 'submitEvent', 'Connecting to the REST server.');
     //send the event object to the REST server
-    console.log('submit event');
-    console.log(event);
     this.http.post<Event>(RestUrls.REST_POST_EVENT, { params: event }).subscribe(
       data => {
         //based on the REST server's specs, the server would reply with the object inserted
@@ -170,8 +137,6 @@ export class EventsService {
         if (data) {
           //if an object is present, send it back to the reservation component
           this.log.logVerbose(this.className, 'submitEvent', 'Server replied with a confirmation object.');
-          console.log('received from server')
-          console.log(data)
           this.eventInsertSuccess.next(data);
         } else {
           //this is weird scenario because the server must reply either with an object or an error
@@ -188,6 +153,10 @@ export class EventsService {
     );
   }
 
+  /**
+   *
+   * @param id
+   */
   fetchEvent(id: string): void {
     const params: HttpParams = new HttpParams()
       .set('_id', id);
@@ -204,12 +173,20 @@ export class EventsService {
     );
   }
 
+  /**
+   *
+   * @param form
+   * @param id
+   */
   editEvent(form: FormGroup, id: number): void {
     this.log.logVerbose(this.className, 'editEvent', 'Trying to get event with id: ' + id + ' from REST server.');
     this.log.logVerbose(this.className, 'editEvent', 'Setting parameters for http request.');
     var evnt = new Event();
     evnt = form.value;
     evnt._id = id;
+    evnt.type = this.translateFormValues(form.controls['type'].value);
+    evnt.startDate = this.getStringDate(form.controls['startDate'].value);
+    evnt.endDate = this.getStringDate(form.controls['endDate'].value);
     this.http.put<Event>(RestUrls.REST_POST_EVENT, { params: evnt }).subscribe(
       data => {
         var evnt: Event = new Event();
@@ -224,6 +201,10 @@ export class EventsService {
     );
   }
 
+  /**
+   *
+   * @param form
+   */
   requestReport(form: FormGroup): void {
     var query: Query = new Query();
     query = form.value;
@@ -279,12 +260,22 @@ export class EventsService {
     }
   }
 
+  /**
+   *
+   * @param datepicker
+   * @returns
+   */
   private getStringDate(datepicker: any): string {
     var pipe: DatePipe = new DatePipe('en-US');
     var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
     return pipe.transform(wDate, 'yyyy-MM-dd');
   }
 
+  /**
+   *
+   * @param value
+   * @returns
+   */
   private translateFormValues(value: string): string {
     switch (value) {
       case EventTypes.IC:

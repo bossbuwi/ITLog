@@ -1,0 +1,45 @@
+<div class="container-fluid" *ngIf="isAdmin">
+  <div class="d-flex">
+    <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-pills" orientation="vertical">
+        <li [ngbNavItem]="1">
+          <a ngbNavLink>Admins</a>
+          <ng-template ngbNavContent>
+            <app-admin-menu></app-admin-menu>
+          </ng-template>
+        </li>
+        <li [ngbNavItem]="2">
+          <a ngbNavLink>Systems</a>
+          <ng-template ngbNavContent>
+            <app-system-menu></app-system-menu>
+          </ng-template>
+        </li>
+        <li [ngbNavItem]="3">
+          <a ngbNavLink>Rules</a>
+          <ng-template ngbNavContent>
+            <app-rule-menu></app-rule-menu>
+          </ng-template>
+        </li>
+        <li [ngbNavItem]="4">
+          <a ngbNavLink>Configuration</a>
+          <ng-template ngbNavContent>
+            <app-config-menu></app-config-menu>
+          </ng-template>
+        </li>
+    </ul>
+    <div [ngbNavOutlet]="nav" class="ml-4"></div>
+  </div>
+</div>
+<div id="outer" class="container" *ngIf="!isLoggedIn">
+  <div id="inner">
+    <h3><span id="loading-text">Please log in to access the page.<br>
+      If you are not supposed to be in this page, please click <a href="/rules">here.</a></span></h3>
+  </div>
+</div>
+<div id="outer" class="container" *ngIf="isLoggedIn && !isAdmin">
+  <div id="inner">
+    <h3><span id="loading-text">
+      It appears that you do not have sufficient authority to access this page.
+      If you think that this is a mistake, please contact the system admins to grant you authority.<br>
+      If you are not supposed to be in this page, please click <a routerLink="/rules">here.</a></span></h3>
+  </div>
+</div>

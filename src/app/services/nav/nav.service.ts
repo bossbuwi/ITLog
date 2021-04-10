@@ -20,7 +20,7 @@ export class NavService {
     this.tabChange.next(tab);
   }
 
-  getActiveTab(): Observable<number> {
+  subscribeActiveTab(): Observable<number> {
     return this.tabChange.asObservable();
   }
 

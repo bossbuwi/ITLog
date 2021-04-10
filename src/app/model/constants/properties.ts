@@ -1,17 +1,18 @@
 export class ConfigNames {
-    public static CONF_LOGGING_LEVEL: string = 'loglevel';
-    public static CONF_DEVMODE: string = 'devmode';
+  public static CONF_LOGGING_LEVEL: string = 'loglevel';
 }
 
 export class RestUrls {
-    public static REST_CONFIG_URL: string = 'http://127.0.0.1:8000/api/config';
-    public static REST_RULES_URL: string = 'http://127.0.0.1:8000/api/rules';
-    public static REST_DEV_LOGIN_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/users';
-    public static REST_LDAP_URL: string = 'http://127.0.0.1:8000/api/login/';
-    public static REST_ADMIN_URL: string = 'https://my-json-server.typicode.com/bossbuwi/fakejson/admins';
-    public static REST_GET_EVENT: string = 'http://127.0.0.1:8000/api/event';
-    public static REST_POST_EVENT: string = 'http://127.0.0.1:8000/api/reserve';
-    public static REST_GENERATE_REPORT: string = 'http://127.0.0.1:8000/api/report';
+  private static REST_SERVER: string = 'http://localhost:8080/api';
+  public static REST_GET_CONFIG: string = RestUrls.REST_SERVER + '/config';
+  public static REST_GET_RULES: string = RestUrls.REST_SERVER + '/rules';
+  public static REST_LDAP_URL: string = RestUrls.REST_SERVER + '/login/';
+  public static REST_GET_EVENT: string = RestUrls.REST_SERVER + '/event';
+  public static REST_POST_EVENT: string = RestUrls.REST_SERVER + '/reserve';
+  public static REST_GENERATE_REPORT: string = RestUrls.REST_SERVER + '/report';
+  public static REST_GET_SYSTEMS: string = RestUrls.REST_SERVER + '/systems';
+  public static REST_GET_USERS: string = RestUrls.REST_SERVER + '/users';
+  public static REST_PUT_USERS: string = RestUrls.REST_SERVER + '/users';
 }
 
 export class ErrorCodes {
@@ -22,11 +23,11 @@ export class ErrorCodes {
 }
 
 export class LoggingLevel {
-    public static NONE: string = 'N';
-    public static VERBOSE: string = 'V';
-    public static INFO: string = 'I';
-    public static WARNINGS: string = 'W';
-    public static ERRORS: string = 'E';
+  public static NONE: string = 'N';
+  public static VERBOSE: string = 'V';
+  public static INFO: string = 'I';
+  public static WARNINGS: string = 'W';
+  public static ERRORS: string = 'E';
 }
 
 export class EventTypes {
