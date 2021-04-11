@@ -11,3 +11,20 @@
 #inner {
   margin: auto;
 }
+
+.report-title {
+  margin-top: 10px;
+}
+
+.help {
+  font-style: italic;
+}
+
+.note {
+  font-weight: bold;
+}
+
+#reportForm {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
