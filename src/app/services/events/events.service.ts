@@ -220,6 +220,9 @@ export class EventsService {
     } else {
       query.type = this.translateFormValues(form.controls['type'].value);
     }
+    if (form.controls['system'].value == '') {
+      query.system = 'All';
+    }
     if (form.controls['zone'].value == '') {
       query.zone = 'All';
     }

@@ -1,4 +1,5 @@
 export class Query {
+  system: string;
   zone: string;
   type: string;
   startDate: string;

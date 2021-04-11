@@ -5,6 +5,8 @@ import { EventsService } from "../../services/events/events.service";
 import { Event } from "../../model/event";
 import { NavService } from 'src/app/services/nav/nav.service';
 import { LoginService } from 'src/app/services/login/login.service';
+import { System } from 'src/app/model/system';
+import { CoreService } from 'src/app/services/core/core.service';
 
 @Component({
   selector: 'app-reports',
@@ -15,14 +17,25 @@ export class ReportsComponent implements OnInit {
   isLoggedIn: boolean;
   isAdmin: boolean;
   username: string;
+  isCollapsed = true;
   reportForm: FormGroup;
   eventResults: Event[];
+  systems: System[];
+  selectedSystem: System;
+  systemList: any[];
+  zones: any[];
 
   constructor(private builder: FormBuilder, private eventServ: EventsService,
-    private nav: NavService, private login: LoginService) { }
+    private nav: NavService, private login: LoginService,
+    private core: CoreService) { }
 
   ngOnInit(): void {
     this.nav.setActiveTab(4);
+    this.systems = [];
+    this.selectedSystem = new System();
+    this.systemList = [];
+    this.zones = [];
+    this.populateSystems();
     this.isLoggedIn = this.login.getLoginStatus();
     this.isAdmin = this.login.getAdminStatus();
     this.username = this.login.getUsername();
@@ -36,11 +49,16 @@ export class ReportsComponent implements OnInit {
       this.isAdmin = this.login.getAdminStatus();
       this.username = this.login.getUsername();
     });
+    this.initializeForm();
     this.eventResults = [];
-    this.reportForm = this.createEventForm();
     this.eventServ.subscribeGetEventResults().subscribe(data => {
       this.eventResults = data;
     })
+  }
+
+  private initializeForm(): void {
+    this.reportForm = this.createEventForm();
+    this.reportForm.controls['cursysver'].disable();
   }
 
   /**
@@ -49,6 +67,7 @@ export class ReportsComponent implements OnInit {
    */
   private createEventForm(): FormGroup {
     return this.builder.group({
+      system: [''],
       zone: [''],
       type: [''],
       startDate: [''],
@@ -76,13 +95,52 @@ export class ReportsComponent implements OnInit {
   /**
    *
    */
-  onCheckboxChange(): void {
+  private onCheckboxChange(): void {
     if (this.reportForm.controls['cursysver'].value) {
       this.reportForm.controls['startDate'].disable();
       this.reportForm.controls['endDate'].disable();
     } else {
       this.reportForm.controls['startDate'].enable();
       this.reportForm.controls['endDate'].enable();
+    }
+  }
+
+  private populateSystems(): void {
+    this.systems = this.core.getSystems();
+    var arr: any[] = [];
+    this.systems.forEach(element => {
+      arr.push(element.globalPrefix);
+    })
+    arr.unshift('All');
+    this.systemList = arr;
+  }
+
+  private onSystemChange($event: any) {
+    if ($event == 'All') {
+      this.reportForm.controls['zone'].disable();
+      this.reportForm.controls['zone'].setValue('');
+      this.reportForm.controls['cursysver'].disable();
+      this.reportForm.controls['cursysver'].setValue(false);
+    } else {
+      this.reportForm.controls['startDate'].enable();
+      this.reportForm.controls['endDate'].enable();
+      this.reportForm.controls['zone'].enable();
+      this.reportForm.controls['cursysver'].enable();
+      this.selectedSystem = this.systems.find(x => x.globalPrefix == $event);
+      this.reportForm.controls['zone'].setValue('');
+      this.zones = this.setZones();
+    }
+  }
+
+  private setZones(): any[] {
+    if(Object.keys(this.selectedSystem).length > 0) {
+      var zones: any[] = ['All',
+        this.selectedSystem.zone1Prefix,
+        this.selectedSystem.zone2Prefix];
+      return zones;
+    } else {
+      var zones: any[] = [];
+      return zones;
     }
   }
 }
