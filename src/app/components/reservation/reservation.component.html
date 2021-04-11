@@ -31,14 +31,11 @@
           <option *ngFor="let zone of zones; let i = index" [value]="zones[i]">
             {{zones[i]}}
           </option>
-          <!-- <option>{{selectedSystem != '' ? selectedSystem.zone1Prefix : ''}}</option>
-          <option>{{selectedSystem != '' ? selectedSystem.zone2Prefix : ''}}</option>
-          <option>{{selectedSystem != '' ? selectedSystem.zone1Prefix + '-' + selectedSystem.zone2Prefix : ''}}</option> -->
         </select>
       </div>
       <div class="form-group col-3">
         <label for="type">Event Type</label>
-        <select class="custom-select" [ngClass]="{'is-valid': isInsert || isEdit}" id="type" name="type" formControlName="type">
+        <select class="custom-select" [ngClass]="{'is-valid': isInsert || isEdit}" (change)="onEventChange($event.target.value)" id="type" name="type" formControlName="type">
           <option *ngFor="let eventType of eventTypes; let i = index" [value]="eventTypes[i]">
             {{eventTypes[i]}}
           </option>
@@ -89,9 +86,11 @@
         <small id="compiledsourcesHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. LEC06A, FTC0630</small>
       </div>
       <div class="form-group col">
-        <label for="apiused">APIs Used</label>
-        <input type="text" class="form-control" id="apiused" name="apiused" aria-describedby="apiusedHelp" formControlName="apiUsed">
-        <small id="apiusedHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. OPAY, IPAY</small>
+        <label for="apiused">{{isUpgrade ? 'System Version' : isMaintenance ? 'Reason' : 'APIs Used'}}</label>
+        <input type="text" class="form-control" [ngClass]="{'is-valid': isMaintenance || isUpgrade}" id="apiused" name="apiused" aria-describedby="apiusedHelp" formControlName="apiUsed">
+        <small *ngIf="!isUpgrade && !isMaintenance" id="apiusedHelp" class="form-text text-muted">Please use comma and space to separate mutiple entries. e.g. OPAY, IPAY</small>
+        <small *ngIf="isMaintenance" id="apiusedHelp" class="form-text text-muted">Please state a reason why this event needs to be done.</small>
+        <small *ngIf="isUpgrade" id="apiusedHelp" class="form-text text-muted">Please supply the version release that the system is upgrading into.</small>
       </div>
     </div>
     <button type="submit" *ngIf="isInsert || isEdit" class="btn" [ngClass]="{'btn-outline-primary': eventForm.invalid, 'btn-primary': eventForm.valid}" [disabled]="eventForm.invalid">Submit</button>
@@ -124,7 +123,7 @@
 </div>
 <div id="outer" class="container" *ngIf="!isLoggedIn">
   <div id="inner">
-    <h3><span id="loading-text">Please log in to access the page.<br>
-      If you are not supposed to be in this page, please click <a href="/rules">here.</a></span></h3>
+    <h3><span id="loading-text">Please log in to input or edit an event.<br>
+      If you just want to check out the events, click <a routerLink="/calendar">here.</a></span></h3>
   </div>
 </div>

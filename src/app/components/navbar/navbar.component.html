@@ -2,7 +2,7 @@
   -- It contains the login form, the brand logo, brand name,
   -- app title and the options menu. -->
 <nav class="navbar navbar-light bg-light" *ngIf="!FATALERROR">
-  <span class="navbar-brand">ITLog</span>
+  <span class="navbar-brand">IT Log</span>
   <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
   <!-- Start of the login form -->
   <form *ngIf="!isLoggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
