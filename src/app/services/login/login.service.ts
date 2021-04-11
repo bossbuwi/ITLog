@@ -4,7 +4,7 @@ import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
 import { LoggerService } from "../../services/logger/logger.service";
-import { ConfigurationService } from "../../services/configuration/configuration.service";
+import { CoreService } from "../core/core.service";
 
 import { User } from "../../model/user";
 import { RestUrls, ErrorCodes, ConfigNames } from "../../model/constants/properties";
@@ -24,7 +24,7 @@ export class LoginService {
 
   private isUserOnline: boolean; //stores the user's last online status
 
-  constructor(private http: HttpClient, private log: LoggerService, private confService: ConfigurationService) {
+  constructor(private http: HttpClient, private log: LoggerService, private confService: CoreService) {
     this.initializeService();
   }
 
@@ -91,95 +91,6 @@ export class LoginService {
   }
 
   /**
-   * Connects to the REST server to verify the validity of the user's credentials.
-   * @param username The user's id.
-   * @param password The user's password.
-   * @returns boolean True if the user's credentials are valid, false if otherwise.
-   */
-  private loginUser(username: string, password: string): void {
-    this.log.logVerbose(this.className, 'loginUser', 'Generating REST login query.');
-    this.log.logVerbose(this.className, 'loginUser', RestUrls.REST_DEV_LOGIN_URL + '?username=' + username + '&password=password');
-    var restQuery: string = RestUrls.REST_DEV_LOGIN_URL + '?username=' + username + '&password=' + password;
-
-    this.log.logVerbose(this.className, 'loginUser', 'Connecting to the development REST server.');
-    this.http.get(restQuery).subscribe(
-      data => {
-        if (Object.keys(data).length > 0) {
-          this.log.logVerbose(this.className, 'loginUser', 'Connection to the development REST server established.');
-          for (var key in data) {
-            this.log.logVerbose(this.className, 'loginUser', 'Data received. Executing data checks.');
-            if (data.hasOwnProperty(key)) {
-              this.log.logVerbose(this.className, 'loginUser', 'Valid credentials. Updating user object.');
-              this.usernameChange.next(username);
-              this.currentUser.password = password;
-              this.userStatusChange.next(true);
-              // this.checkAdminStatus(username);
-              this.log.logVerbose(this.className, 'loginUser', 'User with id: ' + this.currentUser.username + ' is now online.');
-            } else {
-              this.log.logError(this.className, 'loginUser', 'There is something wrong with either the application or the REST server.');
-              this.log.logError(this.className, 'loginUser', 'Please contact an administrator immediately.');
-              this.throwErrors(ErrorCodes.FATAL_ERROR);
-            }
-          }
-        } else {
-          this.log.logVerbose(this.className, 'loginUser', 'Received empty data from REST server.');
-          this.log.logVerbose(this.className, 'loginUser', 'Credentials may be incorrect.');
-          this.throwErrors(ErrorCodes.INCORRECT_CREDENTIALS);
-        }
-      }, error => {
-        this.log.logVerbose(this.className, 'loginUser', 'There is an error connecting to the REST server.');
-        this.log.logVerbose(this.className, 'loginUser', error);
-        this.throwErrors(ErrorCodes.SERVER_ERROR);
-      }, () => {
-        if (this.loginErrors === ErrorCodes.NO_ERRORS) {
-          this.log.logVerbose(this.className, 'loginUser', 'Initiating admin rank check for user with id: ' + this.currentUser.username + '.');
-          this.checkAdminStatus(this.currentUser.username);
-        }
-      });
-  }
-
-  /**
-   * Checks if the user is an admin. This must be called immediately
-   * after the user has successfully logged in. This must
-   * not be called on its own or on any other circumstance.
-   * @param username The user's id.
-   */
-  private checkAdminStatus(username: string): void {
-    this.log.logVerbose(this.className, 'checkAdminStatus', 'Generating REST admin query.');
-    this.log.logVerbose(this.className, 'checkAdminStatus', RestUrls.REST_ADMIN_URL + '?username=' + username);
-    var restQuery: string = RestUrls.REST_ADMIN_URL + '?username=' + username;
-
-    this.log.logVerbose(this.className, 'checkAdminStatus', 'Connecting to the REST server.');
-    this.http.get(restQuery).subscribe(
-      data => {
-        if (Object.keys(data).length > 0) {
-          this.log.logVerbose(this.className, 'checkAdminStatus', 'Connection to the REST server established.');
-          for (var key in data) {
-            this.log.logVerbose(this.className, 'checkAdminStatus', 'Data received. Executing data checks.');
-            if (data.hasOwnProperty(key)) {
-              this.log.logVerbose(this.className, 'checkAdminStatus', 'User with id: ' + username + ' is an admin.');
-              this.log.logVerbose(this.className, 'checkAdminStatus', "Updating user's admin status.");
-              this.userRankChange.next(true);
-            } else {
-              this.log.logError(this.className, 'checkAdminStatus', 'There is something wrong with either the application or the REST server.');
-              this.log.logError(this.className, 'checkAdminStatus', 'Please contact an administrator immediately.');
-              this.throwErrors(ErrorCodes.FATAL_ERROR);
-            }
-          }
-        } else {
-          this.log.logVerbose(this.className, 'checkAdminStatus', 'User with id: ' + username + ' is not an admin.');
-        }
-      }, (error) => {
-        this.log.logVerbose(this.className, 'checkAdminStatus', 'There is an error connecting to the REST server.');
-        this.log.logVerbose(this.className, 'checkAdminStatus', error);
-        this.throwErrors(ErrorCodes.SERVER_ERROR);
-      }, () => {
-        this.log.logVerbose(this.className, 'checkAdminStatus', 'Admin rank checking completed.');
-        this.log.logVerbose(this.className, 'checkAdminStatus', 'Login process complete.');
-      });
-  }
-
-  /**
    *
    * @param errorType
    */
@@ -230,18 +141,9 @@ export class LoginService {
     }, error => {
       this.log.logVerbose(this.className, 'validateUserLDAP', 'There is an error connecting to the REST server.');
       this.log.logVerbose(this.className, 'validateUserLDAP', error);
-      if (this.confService.getConfig(ConfigNames.CONF_DEVMODE) === 'Y') {
-        this.log.logVerbose(this.className, 'validateUserLDAP', 'Application is running in developer mode.');
-        this.log.logVerbose(this.className, 'validateUserLDAP', 'Connecting to the development REST login server.');
-        this.loginUser(username, password);
-      } else {
-        this.throwErrors(ErrorCodes.SERVER_ERROR);
-      }
+      this.throwErrors(ErrorCodes.SERVER_ERROR);
     }, () => {
-      // if (this.loginErrors === ErrorCodes.NO_ERRORS) {
-        // this.log.logVerbose(this.className, 'validateUserLDAP', 'Initiating admin rank check for user with id: ' + this.currentUser.username + '.');
-        // this.checkAdminStatus(this.currentUser.username);
-      // }
+
     });
   }
 }

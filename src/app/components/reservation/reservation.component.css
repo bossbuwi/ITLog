@@ -10,3 +10,13 @@
 #formreminder {
   font-style: italic;
 }
+
+#outer {
+  width: 100%;
+  height: 80vh;
+  display: flex;
+}
+
+#inner {
+  margin: auto;
+}

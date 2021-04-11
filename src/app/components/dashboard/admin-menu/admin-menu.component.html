@@ -1,0 +1,27 @@
+<div class="container-fluid">
+  <h4 class="title">Modify Admin Rights</h4>
+  <small class="help">A checked "is Admin?" field signifies that the user has admin rights. The default user with id: admin cannot be changed for security and stability reasons.</small><br>
+  <small class="help warning">Warning! A user with admin rights has more power than a normal user and has access to features that a normal user has not.
+    This includes features such as deleting events, generating reports and changing configurations. Be cautious when changing admin rights.
+    Always remember that with great power comes great responsibility.
+  </small>
+  <form class="form" [formGroup]="adminForm" (ngSubmit)="onSubmit()" novalidate>
+    <div formArrayName="users" class="form-array">
+      <div *ngFor="let user of users.controls; let i=index">
+        <div [formGroupName]="i">
+          <div class="form-group row">
+            <label for="username{{i}}" class="col-form-label">Username</label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" id="username{{i}}" formControlName="username" readonly>
+            </div>
+            <div class="form-check col-sm-5 mt-2">
+              <input type="checkbox" class="form-check-input" id="admin{{i}}" formControlName="admin" (change)="onCheckboxChange()">
+              <label for="admin{{i}}" class="form-check-label">is Admin?</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button *ngIf="!isPristine" type="submit"class="btn" [ngClass]="{'btn-outline-primary': !isTouched, 'btn-primary': isTouched}" [disabled]="!isTouched">{{isTouched ? 'Save' : 'Updated!'}}</button>
+  </form>
+</div>

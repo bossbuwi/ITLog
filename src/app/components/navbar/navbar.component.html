@@ -1,22 +1,13 @@
 <!-- This is the template for the navbar component.
   -- It contains the login form, the brand logo, brand name,
   -- app title and the options menu. -->
-<nav class="navbar navbar-light bg-light">
+<nav class="navbar navbar-light bg-light" *ngIf="!FATALERROR">
   <span class="navbar-brand">ITLog</span>
   <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
   <!-- Start of the login form -->
   <form *ngIf="!isLoggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
     <input
-      [ngClass]="{'is-invalid' : hasErrors}"
-      class="form-control form-control-sm mr-2"
-      type="username"
-      placeholder="Username"
-      aria-label="Username"
-      formControlName="username"
-      #t="ngbTooltip"
-      ngbTooltip="Username or password is incorrect."
-      triggers="manual"
-      (invalid)="t.open()">
+      [ngClass]="{'is-invalid' : hasErrors}" class="form-control form-control-sm mr-2" type="username" placeholder="Username" aria-label="Username" formControlName="username">
     <input [ngClass]="{'is-invalid' : hasErrors}" class="form-control form-control-sm mr-2" type="password" placeholder="Password" aria-label="Password" formControlName="password">
     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Login</button>
   </form>
@@ -25,9 +16,94 @@
   <div class="nav-item" ngbDropdown *ngIf="isLoggedIn">
     <a class="nav-link" ngbDropdownToggle id="optionsDropdown" role="button">Welcome {{username}}!</a>
     <div ngbDropdownMenu aria-labelledby="optionsDropdown" class="dropdown-menu dropdown-menu-right">
-      <a ngbDropdownItem href="#" *ngIf="isAdmin">Dashboard</a>
-      <a ngbDropdownItem href="#" (click)="logOut()">Logout</a>
+      <a class="dropmenu" *ngIf="isAdmin" ngbDropdownItem (click)="displayAdminRank(admin)">Rank: Admin</a>
+      <a class="dropmenu" *ngIf="!isAdmin" ngbDropdownItem (click)="displayNormalRank(normal)">Rank: Normal</a>
+      <div class="dropdown-divider"></div>
+      <a class="dropmenu" ngbDropdownItem (click)="displayAbout(about)">About</a>
+      <a class="dropmenu" ngbDropdownItem (click)="logOut()">Logout</a>
     </div>
   </div>
   <!-- End of the options dropdown menu. -->
 </nav>
+<nav class="navbar navbar-light bg-light" *ngIf="FATALERROR">
+  <span class="navbar-brand">ITLog</span>
+  <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
+</nav>
+<!-- Below navbar displays only during a fatal error state
+  -- This navbar only has the app title and logo and the login form is removed. -->
+<div id="outer" class="container" *ngIf="FATALERROR">
+  <div id="inner">
+    <h3><span id="loading-text">It is embarrassing but it seems that the app has encountered a fatal error.</span></h3>
+    <small class="manual">Please contact the administrators for the error to be investigated. Meanwhile, just log your events manually on a worksheet, just like the good old days.</small>
+  </div>
+</div>
+<!-- Below codes are for the About page which takes the form of a modal -->
+<ng-template #about let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">About</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <h4>Tech Stack</h4>
+    <div class="container-fluid frontend">
+      <h5>Frontend</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Angular 11.2.6</li>
+        <li class="list-group-item">Angular Bootstrap 9.1.0</li>
+        <li class="list-group-item">Built with Angular CLI 11.2.6</li>
+      </ul>
+    </div>
+    <div class="container-fluid backend">
+      <h5>Backend</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Laravel Framework 8.35.1</li>
+        <li class="list-group-item">MariaDB 10.4.18</li>
+        <li class="list-group-item">PHP 8.0.3</li>
+      </ul>
+    </div>
+    <div class="container-fluid others">
+      <h5>Others</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Developer: MJ Mananghaya</li>
+        <li class="list-group-item">Tech Support: Jason Adriano</li>
+        <li class="list-group-item">QA and Testers: Midas FT Team</li>
+      </ul>
+    </div>
+    <div class="container-fluid copyright">
+      <small>Finastra 2021</small>
+    </div>
+  </div>
+</ng-template>
+<ng-template #admin let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Rank: Admin</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="container-fluid">
+      You are an admin. You are more powerful than the normal users. You have the authority to fully edit events,
+      delete events, generate reports and access the dashboard. You could also promote normal users to admin rank
+      and remove admin rank from fellow admins. All the power in this app resides upon your hands, so use it well.
+      Remember, that with great power comes great responsibility.
+    </div>
+  </div>
+</ng-template>
+<ng-template #normal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Rank: Normal</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="container-fluid">
+      You are a normal user. You are a pawn among officers. You are the vanilla among the flavors. But being ordinary
+      is not a bad thing. Without you, this app would cease to function. So log your events carefully and diligently
+      and maybe one day, with enough work, you will get promoted to admin rank.
+    </div>
+  </div>
+</ng-template>

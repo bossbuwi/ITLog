@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { NgbDate } from '@ng-bootstrap/ng-bootstrap';
 
 import { Event } from "../../model/event";
+import { System } from "../../model/system";
 import { EventTypes, EventTypesREST, FormMode } from "../../model/constants/properties";
 
 import { EventsService } from "../../services/events/events.service";
 import { LoginService } from "../../services/login/login.service";
 import { LoggerService } from "../../services/logger/logger.service";
+import { CoreService } from 'src/app/services/core/core.service';
+import { NavService } from 'src/app/services/nav/nav.service';
 
 @Component({
   selector: 'app-reservation',
@@ -16,9 +18,12 @@ import { LoggerService } from "../../services/logger/logger.service";
   styleUrls: ['./reservation.component.css']
 })
 export class ReservationComponent implements OnInit {
-  private className: string = ReservationComponent.name;
+  private className: string = 'ReservationComponent';
   private username: string;
-  private eventModel: Event;
+  eventModel: Event;
+  systems: System[];
+  selectedSystem: System;
+  zones: any[];
   isInsert: boolean; //flag to signify that form is in insert mode
   isEdit: boolean; //flag to signify that form is in edit mode
   isConfirm: boolean; //flag to signify that form is in confirm mode
@@ -27,13 +32,17 @@ export class ReservationComponent implements OnInit {
   isLoggedIn: boolean; //flag to indicate if user is logged in
   isAdmin: boolean; //flag to indicate if user is admin
   hasErrors: boolean; //flag to indicate that form has errors
-  // eventInsertSuccess: boolean; //flag to indicate that the event has been successfully inserted
-  // eventGetSucess: boolean; //flag to indicate that the event for editing has already been fetched
-  // eventEditSuccess: boolean; //flag to indicate that the event for editing has already been edited
 
-  constructor(private log: LoggerService, private loginService: LoginService, private builder: FormBuilder, private eventServ: EventsService) { }
+  constructor(private log: LoggerService, private loginService: LoginService,
+    private builder: FormBuilder, private eventServ: EventsService,
+    private core: CoreService, private nav: NavService) { }
 
   ngOnInit(): void {
+    this.nav.setActiveTab(3);
+    this.systems = [];
+    this.selectedSystem = new System();
+    this.systems = this.core.getSystems();
+    this.zones = [];
     //create a new event model where form values would be mapped
     this.eventModel = new Event();
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
@@ -69,8 +78,7 @@ export class ReservationComponent implements OnInit {
     //finally, initialize the form
     this.initializeForm();
     //these are subscriptions to the events service's broadcasts
-    this.eventServ.insertEventCompleted().subscribe(insert => {
-      // this.eventInsertSuccess = true;
+    this.eventServ.subscribeInsertEventCompletion().subscribe(insert => {
       //this subscription would receive data after a successful insert
       //this should send the form into confirm mode to be able
       //to show the user one last time what the inserted data is
@@ -81,8 +89,7 @@ export class ReservationComponent implements OnInit {
       //values received from the server
       this.initializeForm();
     });
-    this.eventServ.getEventForEditCompleted().subscribe(editStart => {
-      // this.eventGetSucess = true;
+    this.eventServ.subscribeGetEventEditCompletion().subscribe(editStart => {
       //this subscription would receive data if the event service
       //has finished fetching the data of the event to be edited from the server
       //if this received a data, it means that the form should be in edit mode
@@ -93,10 +100,8 @@ export class ReservationComponent implements OnInit {
       //values received from the server
       this.initializeForm();
     });
-    this.eventServ.editEventCompleted().subscribe(editDone => {
-      // this.eventGetSucess = false;
-      // this.eventEditSuccess = true;
-      //this sbuscription would receive data if the event edited
+    this.eventServ.subscribeEditEventCompletion().subscribe(editDone => {
+      //this subscription would receive data if the event edited
       //has been sent and processed by the REST server
       //this should send the form into confirm mode
       this.setFormMode(FormMode.FORM_CONFIRM);
@@ -116,7 +121,7 @@ export class ReservationComponent implements OnInit {
     this.log.logVerbose(this.className, 'createEventForm', 'Generating event reservation form.');
     return this.builder.group({
       user: [],
-      system: [],
+      system: ['',[Validators.required]],
       zone: ['',[Validators.required]],
       type: ['',[Validators.required]],
       jiraCase: [],
@@ -129,14 +134,18 @@ export class ReservationComponent implements OnInit {
     });
   }
 
+  /**
+   *
+   */
   private initializeForm(): void {
     //this must be streamlined because it is messy and inefficient
     //change the event type select element's contents depending on user's rank
     this.eventTypes = this.getEventTypes(this.isAdmin);
     //sets the default values for the fields if the form is in edit mode or confirm mode
-    // if (this.eventInsertSuccess || this.eventGetSucess || this.eventEditSuccess) {
     if (this.isEdit || this.isConfirm) {
       this.log.logVerbose(this.className, 'initializeForm', 'Mapping the event object into the form.');
+      this.eventForm.controls['system'].setValue(this.eventModel.system);
+      this.onSystemChange(this.eventModel.system);
       this.eventForm.controls['zone'].setValue(this.eventModel.zone);
       //event type select element's contents must be translated first
       //because the REST server has different values from the select options
@@ -161,13 +170,11 @@ export class ReservationComponent implements OnInit {
       //else if form is in insert mode, enable all fields
       this.eventForm.enable();
     }
-    //sets the default values for the username and system fields
+    //sets the default values for the username field
     this.eventForm.controls['user'].setValue(this.username);
-    this.eventForm.controls['system'].setValue('OS');
-    //disables the username and system fields
+    //disables the username field
     //this is done by default, whatever mode the form is in
     this.eventForm.controls['user'].disable();
-    this.eventForm.controls['system'].disable();
   }
 
   /**
@@ -199,12 +206,16 @@ export class ReservationComponent implements OnInit {
     }
   }
 
+  /**
+   *
+   */
   onSubmit(): void {
+    console.log(this.eventForm.controls['system']);
+    console.log(this.eventForm.controls['zone']);
     //this is executed when the user clicks the submit button
     //be aware that the submit button is present both when form is in
     //insert mode and on edit mode so the codes must be robust enough
     //to accomodate both modes on a single method
-
     //create a variable that will hold the  result of the date checking
     //this must be done to ensure that the end date is not earlier than the start date
     var compareResult: any = this.compareDates(this.eventForm.controls['startDate'].value, this.eventForm.controls['endDate'].value);
@@ -225,8 +236,6 @@ export class ReservationComponent implements OnInit {
       //this is where the conditions would branch out because the flow would now differ
       //when the form is in edit mode versus when it is in insert mode
       if (this.isInsert) {
-        //values on some specific fields must be translated to be accepted by the REST server
-        this.translateFormValues();
         //call the event service and submit the whole form
         this.eventServ.submitEvent(this.eventForm);
         //disable the user and system fields again
@@ -240,8 +249,6 @@ export class ReservationComponent implements OnInit {
         //if the form is in edit mode, the start date is also disabled
         //so it must be temporarily enabled for its value to be read
         this.eventForm.controls['startDate'].enable();
-        //some values need to be translated just like on insert mode
-        this.translateFormValues();
         //call the event service and submit the whole form
         //but this time, another parameter is also sent to the event service
         //that is the id property of the event being edited
@@ -255,6 +262,9 @@ export class ReservationComponent implements OnInit {
     }
   }
 
+  /**
+   *
+   */
   resetForm(): void {
     this.setFormMode(FormMode.FORM_INSERT);
     this.eventForm.reset();
@@ -262,12 +272,37 @@ export class ReservationComponent implements OnInit {
     this.initializeForm();
   }
 
-  private getStringDate(datepicker: any): string {
-    var pipe: DatePipe = new DatePipe('en-US');
-    var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
-    return pipe.transform(wDate, 'yyyy-MM-dd');
+  /**
+   *
+   * @returns
+   */
+  private setZones(): any[] {
+    if(Object.keys(this.selectedSystem).length > 0) {
+      var zones: any[] = [this.selectedSystem.zone1Prefix,
+        this.selectedSystem.zone2Prefix,
+        this.selectedSystem.zone1Prefix + '-' + this.selectedSystem.zone2Prefix,];
+      return zones;
+    } else {
+      var zones: any[] = [];
+      return zones;
+    }
   }
 
+  /**
+   *
+   * @param $event
+   */
+  private onSystemChange($event: any) {
+    this.selectedSystem = this.systems.find(x => x.globalPrefix == $event);
+    this.eventForm.controls['zone'].setValue('');
+    this.zones = this.setZones();
+  }
+
+  /**
+   *
+   * @param date
+   * @returns
+   */
   private formatForDatepicker(date: string): NgbDate {
     var dateArr: string[] = date.split('-',3);
     var year: number = parseInt(dateArr[0], 10);
@@ -276,6 +311,12 @@ export class ReservationComponent implements OnInit {
     return new NgbDate(year, month, day);
   }
 
+  /**
+   *
+   * @param startDate
+   * @param endDate
+   * @returns
+   */
   private compareDates(startDate: any, endDate: any): any {
     var dStartDate: Date = new Date(startDate.year, startDate.month-1, startDate.day);
     var dEndDate: Date = new Date(endDate.year, endDate.month-1, endDate.day);
@@ -286,6 +327,11 @@ export class ReservationComponent implements OnInit {
     }
   }
 
+  /**
+   *
+   * @param adminStatus
+   * @returns
+   */
   private getEventTypes(adminStatus: boolean): any[] {
     var adminList: any[] = [EventTypes.IC, EventTypes.COB,
       EventTypes.IC_COB, EventTypes.MAINTENANCE, EventTypes.SYS_UPGRADE];
@@ -298,33 +344,11 @@ export class ReservationComponent implements OnInit {
     }
   }
 
-  private translateFormValues(): void {
-    this.eventForm.controls['startDate'].setValue(this.getStringDate(this.eventForm.controls['startDate'].value));
-    this.eventForm.controls['endDate'].setValue(this.getStringDate(this.eventForm.controls['endDate'].value))
-
-    var evntTypeStr: string = this.eventForm.controls['type'].value;
-    switch (evntTypeStr) {
-      case EventTypes.IC:
-        this.eventForm.controls['type'].setValue(EventTypesREST.IC);
-        break;
-      case EventTypes.COB:
-        this.eventForm.controls['type'].setValue(EventTypesREST.COB);
-        break;
-      case EventTypes.IC_COB:
-        this.eventForm.controls['type'].setValue(EventTypesREST.IC_COB);
-        break;
-      case EventTypes.MAINTENANCE:
-        this.eventForm.controls['type'].setValue(EventTypesREST.MAINTENANCE);
-        break;
-      case EventTypes.SYS_UPGRADE:
-        this.eventForm.controls['type'].setValue(EventTypesREST.SYS_UPGRADE);
-        break;
-      default:
-        this.eventForm.controls['type'].setValue(EventTypesREST.IC);
-        break;
-    }
-  }
-
+  /**
+   *
+   * @param value
+   * @returns
+   */
   private translateRESTValues(value: any): string {
     switch (value) {
       case EventTypesREST.IC:

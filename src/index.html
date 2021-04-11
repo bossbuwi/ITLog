@@ -11,6 +11,30 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- This is for a loading animation while the app is starting up. -->
+    <div id="outer" class="container">
+      <div id="inner">
+        <h3><span id="loading-text"></span>
+        <div class="spinner-border text-secondary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div></h3>
+      </div>
+    </div>
+    <!-- Below are javascripts for the loading screen. -->
+    <script type="text/javascript">
+      const phrases = [
+        'Marking off days until the next event..',
+        'Writing individual logs..',
+        'Waking the administrators..',
+        'Finding a new calendar..',
+        'Cooking your eggs..'
+      ];
+      const random = Math.floor(Math.random() * phrases.length);
+      //this selects a phrase from the array at random and
+      //shows it while the app is still loading
+      document.getElementById("loading-text").innerHTML = phrases[random];
+    </script>
+  </app-root>
 </body>
 </html>

@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
 import { Rule } from "../../model/rule";
-import { RulesService } from "../../services/rule/rules.service";
+import { System } from "../../model/system";
+import { CoreService } from 'src/app/services/core/core.service';
+import { ErrorCodes } from 'src/app/model/constants/properties';
+import { NavService } from 'src/app/services/nav/nav.service';
 
 @Component({
   selector: 'app-announcements',
@@ -10,17 +13,26 @@ import { RulesService } from "../../services/rule/rules.service";
 })
 export class AnnouncementsComponent implements OnInit {
   rules: Rule[];
+  systems: System[];
+  selectedSystem: System;
+  FATALERROR: boolean;
 
-  // images = [944, 1011, 984].map((n) => `https://picsum.photos/id/${n}/900/500`);
-
-  constructor(private ruleService: RulesService) { }
+  constructor(private core: CoreService, private nav: NavService) { }
 
   ngOnInit(): void {
-    this.displayRules();
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    }
+    this.nav.setActiveTab(1);
+    this.systems = [];
+    this.rules = [];
+    this.systems = this.core.getSystems();
+    this.rules = this.core.getRules();
+    this.selectedSystem = this.systems[0];
   }
 
-  displayRules(): void {
-    this.rules = this.ruleService.getRules();
+  onChange($event: any): void {
+    this.selectedSystem = this.systems.find(x => x.globalPrefix == $event);
   }
 
 }

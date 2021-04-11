@@ -1,16 +1,22 @@
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="!FATALERROR">
   <div class="row">
     <div class="col-5">
       <div class="container-fluid">
-        <h3 class="system-details">System Details</h3>
+        <h4 class="system-details">System Details</h4>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item">Global Prefix: OS</li>
-          <li class="list-group-item">URL: <a href="https://mancswcbman0278:20025/fusionmidas/docs/index.jsp">https://mancswcbman0278:20025/fusionmidas/docs/index.jsp</a></li>
-          <li class="list-group-item">Machine: MNQ</li>
-          <li class="list-group-item">Zone 1: O4 - Spain</li>
-          <li class="list-group-item">Zone 2: O5 - Argentina</li>
-          <li class="list-group-item">Login: OSUSER01,OSUSER02,OSUSER03</li>
-          <li class="list-group-item">System Admins: Jen Flores,MJ Mananghaya</li>
+          <li class="list-group-item form-inline">Global Prefix:
+            <select class="form-control" (change)="onChange($event.target.value)">
+              <option *ngFor="let system of systems; let i = index" [value]="systems[i].globalPrefix">
+                {{systems[i].globalPrefix}}
+              </option>
+            </select>
+          </li>
+          <li class="list-group-item" *ngIf="systems.length > 0">URL: <a href="{{selectedSystem.systemUrl}}">{{selectedSystem.systemUrl}}</a></li>
+          <li class="list-group-item" *ngIf="systems.length > 0">Machine: {{selectedSystem.machine}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0">Zone 1: {{selectedSystem.zone1Prefix}} - {{selectedSystem.zone1Name}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0">Zone 2: {{selectedSystem.zone2Prefix}} - {{selectedSystem.zone2Name}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0">Login: {{selectedSystem.loginNames}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0">System Admins: {{selectedSystem.systemAdmin}}</li>
         </ul>
       </div>
     </div>
@@ -18,7 +24,7 @@
       <table class="table table-striped">
         <thead>
         <tr>
-          <th colspan="2">Rules and Regulations</th>
+          <th colspan="2">System Rules</th>
         </tr>
         </thead>
         <tbody>

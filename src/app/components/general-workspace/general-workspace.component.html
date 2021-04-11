@@ -1,10 +1,7 @@
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="!FATALERROR">
   <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs">
-      <li [ngbNavItem]="1" routerLink="/announcement">
-        <a ngbNavLink>Announcements and Rules</a>
-        <!-- <ng-template ngbNavContent>
-          <app-announcements></app-announcements>
-        </ng-template> -->
+      <li [ngbNavItem]="1" routerLink="/rules">
+        <a ngbNavLink>Details and Rules</a>
       </li>
       <li [ngbNavItem]="2" routerLink="/calendar">
         <a ngbNavLink>Calendar</a>
@@ -14,6 +11,9 @@
       </li>
       <li [ngbNavItem]="4" *ngIf="isAdmin" routerLink="/reports">
         <a ngbNavLink>Reports</a>
+      </li>
+      <li [ngbNavItem]="5" *ngIf="isAdmin" routerLink="/dashboard">
+        <a ngbNavLink>Dashboard</a>
       </li>
   </ul>
 </div>

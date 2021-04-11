@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RulesService } from './rules.service';
+import { NavService } from './nav.service';
 
-describe('RulesService', () => {
-  let service: RulesService;
+describe('NavService', () => {
+  let service: NavService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RulesService);
+    service = TestBed.inject(NavService);
   });
 
   it('should be created', () => {
