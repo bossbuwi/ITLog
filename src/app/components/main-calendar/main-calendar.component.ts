@@ -120,7 +120,7 @@ export class MainCalendarComponent implements OnInit {
     //send a request to the navigation bar to change the active tab
     this.nav.setActiveTab(3);
     //call Angular's router to redirect the user to the reservation page
-    this.router.navigate(['/reservation']);
+    this.router.navigate(['/event']);
   }
 
   /**
@@ -135,7 +135,7 @@ export class MainCalendarComponent implements OnInit {
     //send a request to the navigation bar to change the active tab
     this.nav.setActiveTab(3);
     //call Angular's router to redirect the user to the reservation page
-    this.router.navigate(['/reservation']);
+    this.router.navigate(['/event']);
   }
 
   /**

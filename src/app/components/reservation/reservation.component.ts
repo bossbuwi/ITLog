@@ -27,6 +27,8 @@ export class ReservationComponent implements OnInit {
   isInsert: boolean; //flag to signify that form is in insert mode
   isEdit: boolean; //flag to signify that form is in edit mode
   isConfirm: boolean; //flag to signify that form is in confirm mode
+  isUpgrade: boolean; //flag to signify that a system maintenance is being inserted
+  isMaintenance: boolean;
   eventForm: FormGroup; //the event formgroup object
   eventTypes: any[]; //array to hold the options for the event types select element
   isLoggedIn: boolean; //flag to indicate if user is logged in
@@ -206,6 +208,19 @@ export class ReservationComponent implements OnInit {
     }
   }
 
+  private setSystemMaintenace(maintenanceType?: string) {
+    if (maintenanceType == EventTypes.MAINTENANCE) {
+      this.isMaintenance = true;
+      this.isUpgrade = false;
+    } else if (maintenanceType == EventTypes.SYS_UPGRADE) {
+      this.isMaintenance = false;
+      this.isUpgrade = true;
+    } else {
+      this.isMaintenance = false;
+      this.isUpgrade = false;
+    }
+  }
+
   /**
    *
    */
@@ -296,6 +311,27 @@ export class ReservationComponent implements OnInit {
     this.selectedSystem = this.systems.find(x => x.globalPrefix == $event);
     this.eventForm.controls['zone'].setValue('');
     this.zones = this.setZones();
+  }
+
+  private onEventChange($event: any) {
+    if ($event == EventTypes.MAINTENANCE
+        || $event == EventTypes.SYS_UPGRADE) {
+      this.eventForm.controls['jiraCase'].disable();
+      this.eventForm.controls['featureOn'].disable();
+      this.eventForm.controls['featureOff'].disable();
+      this.eventForm.controls['compiledSources'].disable();
+      $event == EventTypes.MAINTENANCE ? this.setSystemMaintenace(EventTypes.MAINTENANCE) : this.setSystemMaintenace(EventTypes.SYS_UPGRADE);
+      this.eventForm.controls['apiUsed'].setValidators(Validators.required);
+      this.eventForm.controls['apiUsed'].updateValueAndValidity();
+    } else {
+      this.eventForm.controls['jiraCase'].enable();
+      this.eventForm.controls['featureOn'].enable();
+      this.eventForm.controls['featureOff'].enable();
+      this.eventForm.controls['compiledSources'].enable();
+      this.setSystemMaintenace();
+      this.eventForm.controls['apiUsed'].clearValidators();
+      this.eventForm.controls['apiUsed'].updateValueAndValidity();
+    }
   }
 
   /**

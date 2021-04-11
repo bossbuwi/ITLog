@@ -8,6 +8,13 @@
       <!-- Row 1, Column 1, Row 1-->
       <div class="container-fluid">
         <div class="row">
+          <div class="col-5">
+            <ul class="list-group-flush">
+              <li class="list-group-item"><small class="reminder">Please go to the Events tab if you want to log an event.</small></li>
+              <li class="list-group-item"><small class="reminder">Click a date on the calendar to display the events for that day.</small></li>
+              <li class="list-group-item"><small class="reminder">Click an event (if there are any) on the table to right of the calendar to display its details.</small></li>
+            </ul>
+          </div>
           <div class="col">
             <ngb-datepicker #picker [(ngModel)]="calendar" (dateSelect)="onDateSelection($event)" outsideDays="hidden"></ngb-datepicker>
           </div>

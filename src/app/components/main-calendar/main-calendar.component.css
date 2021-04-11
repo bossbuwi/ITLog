@@ -2,9 +2,13 @@
   margin-top: 10px;
 }
 
-ngb-datepicker {
-  margin-left: 13rem;
+.reminder {
+  font-style: italic;
 }
+
+/* ngb-datepicker {
+  margin-left: 0em;
+} */
 
 /* Make the hyperlinks look like bootstrap link
  * even without the href atrribute */
