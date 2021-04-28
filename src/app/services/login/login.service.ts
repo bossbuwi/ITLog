@@ -6,8 +6,8 @@ import { catchError, retry } from 'rxjs/operators';
 import { LoggerService } from "../../services/logger/logger.service";
 import { CoreService } from "../core/core.service";
 
-import { User } from "../../model/user";
-import { RestUrls, ErrorCodes, ConfigNames } from "../../model/constants/properties";
+import { User } from "../../models/user";
+import { RestUrls, ErrorCodes, ConfigNames, LoginPersistence } from "../../models/constants/properties";
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +24,13 @@ export class LoginService {
 
   private isUserOnline: boolean; //stores the user's last online status
 
-  constructor(private http: HttpClient, private log: LoggerService, private confService: CoreService) {
-    this.initializeService();
+  constructor(private http: HttpClient, private log: LoggerService,
+    private core: CoreService) {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+
+    } else {
+      this.initializeService();
+    }
   }
 
   /**
@@ -50,16 +55,18 @@ export class LoginService {
     });
     this.usernameChange.subscribe((username) => {
       this.currentUser.username = username;
+      this.core.encodeUser(username);
     });
     this.loginErrorChange.subscribe((loginErrors) => {
       this.loginErrors = loginErrors;
     });
     //sends a wake up data to the subscriptions
-    this.log.logVerbose(this.className, 'initializeService', 'Initiating subscriptions.');
-    this.userStatusChange.next(false);
-    this.userRankChange.next(false);
-    this.usernameChange.next('');
+    // this.log.logVerbose(this.className, 'initializeService', 'Initiating subscriptions.');
+    // this.userStatusChange.next(false);
+    // this.userRankChange.next(false);
+    // this.usernameChange.next('');
     this.loginErrorChange.next(ErrorCodes.NO_ERRORS);
+    this.autoLogin();
   }
 
   subscribeUserStatus(): Observable<boolean> {
@@ -109,6 +116,9 @@ export class LoginService {
     this.usernameChange.next('');
     this.loginErrorChange.next(ErrorCodes.NO_ERRORS);
     this.userStatusChange.next(false);
+    localStorage.removeItem(LoginPersistence.KEY_STORAGE);
+    localStorage.removeItem(LoginPersistence.KEY_USERNAME);
+    localStorage.removeItem(LoginPersistence.KEY_ADMIN);
     this.log.logVerbose(this.className, 'logOutUser', 'The user has been completely logged out from the system.');
   }
 
@@ -145,5 +155,27 @@ export class LoginService {
     }, () => {
 
     });
+  }
+
+  private autoLogin(): void {
+    this.log.logVerbose(this.className, 'autoLogin', 'Initiating autologin process.');
+    if (localStorage.getItem(LoginPersistence.KEY_USERNAME) == null
+      || localStorage.getItem(LoginPersistence.KEY_ADMIN) == null) {
+      this.log.logVerbose(this.className, 'autoLogin', 'There are no saved user information found.');
+    } else {
+      this.log.logVerbose(this.className, 'autoLogin', 'A saved user information is found.');
+      this.log.logVerbose(this.className, 'autoLogin', 'Logging in user with id: ' + localStorage.getItem(LoginPersistence.KEY_USERNAME) + '.');
+      this.usernameChange.next(localStorage.getItem(LoginPersistence.KEY_USERNAME));
+      if (localStorage.getItem(LoginPersistence.KEY_ADMIN) == 'true') {
+        this.userRankChange.next(true);
+      } else {
+        this.userRankChange.next(false);
+      }
+      this.userStatusChange.next(true);
+      this.log.logVerbose(this.className, 'autoLogin', 'Removing any persistent information.');
+      localStorage.removeItem(LoginPersistence.KEY_USERNAME);
+      localStorage.removeItem(LoginPersistence.KEY_ADMIN);
+    }
+    this.log.logVerbose(this.className, 'autoLogin', 'Autologin process complete.');
   }
 }

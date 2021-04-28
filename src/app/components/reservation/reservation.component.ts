@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDate } from '@ng-bootstrap/ng-bootstrap';
 
-import { Event } from "../../model/event";
-import { System } from "../../model/system";
-import { EventTypes, EventTypesREST, FormMode } from "../../model/constants/properties";
+import { Event } from "../../models/event";
+import { System } from "../../models/system";
+import { EventTypes, EventTypesREST, FormMode, ErrorCodes } from "../../models/constants/properties";
 
 import { EventsService } from "../../services/events/events.service";
 import { LoginService } from "../../services/login/login.service";
@@ -40,6 +40,14 @@ export class ReservationComponent implements OnInit {
     private core: CoreService, private nav: NavService) { }
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+
+    } else {
+      this.initializeComponent();
+    }
+  }
+
+  private initializeComponent() {
     this.nav.setActiveTab(3);
     this.systems = [];
     this.selectedSystem = new System();
@@ -225,8 +233,6 @@ export class ReservationComponent implements OnInit {
    *
    */
   onSubmit(): void {
-    console.log(this.eventForm.controls['system']);
-    console.log(this.eventForm.controls['zone']);
     //this is executed when the user clicks the submit button
     //be aware that the submit button is present both when form is in
     //insert mode and on edit mode so the codes must be robust enough

@@ -1,3 +1,42 @@
 <div class="container-fluid">
-  <h3>The developers are still sleeping, I mean, working hard to finish this page. Please come back later.</h3>
+  <h4 class="title">Modify App Configuration</h4>
+  <small class="help">Marked fields are required. The Save button will not be enabled unless required fields are marked with a check.<br>
+  Values must be from the declared valid values. Length must also be from the declared length. If the length and/or the value of the input do not
+  correspond to the declared values, the default value will be automatically applied.
+  </small><br>
+  <small class="help warning">Warning! These settings are crucial to the app's functions. Please be careful when changing them.<br>
+  The form will not automatically update on invalid values. To update the values, change tabs on the left and return to the Configuration tab,
+  or just reload the page. The form will however, automatically update configurations with correct input value.
+  </small>
+  <form class="form config-form" [formGroup]="configForm" (ngSubmit)="onSubmit()" novalidate>
+    <button type="submit" class="btn btn-primary mb-1" id="save" [disabled]="configForm.invalid || updateComplete || configForm.pristine">{{updateComplete ? 'Saved!' : 'Save'}}</button>
+    <div formArrayName="configs" class="form-array">
+      <div *ngFor="let config of configs.controls; let i=index">
+        <div class="card mb-3 config-details w-50">
+          <div class="card-body">
+            <div [formGroupName]="i">
+              <div class="form-row">
+                <h5 class="config-name">{{config.get('name').value}}</h5>
+              </div>
+              <div class="form-row">
+                <p class="config-description">{{config.get('description').value}}</p>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label for="value{{i}}" class="form-label">Value</label>
+                  <input type="text" class="form-control" id="value{{i}}" formControlName="value" [ngClass]="{'is-invalid': config.get('value').invalid, 'is-valid': config.get('value').valid}">
+                </div>
+              </div>
+                <small>Length: {{config.get('length').value}}</small><br>
+                <small>Valid values are {{config.get('validValues').value}}.</small><br>
+                <small>Default value is {{config.get('defaultValue').value}}.</small><br>
+            </div>
+          </div>
+          <div class="card-footer">
+            <small>Last modified by {{config.get('lastModifiedBy').value}}.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>

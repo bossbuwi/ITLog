@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { ErrorCodes } from 'src/app/model/constants/properties';
+import { ErrorCodes } from 'src/app/models/constants/properties';
 
 import { LoginService } from "../../services/login/login.service";
 import { NavService } from "../../services/nav/nav.service";
@@ -24,7 +24,12 @@ export class GeneralWorkspaceComponent implements OnInit {
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
       this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
     }
+  }
+
+  private initializeComponent() {
     this.loginService.subscribeUserStatus().subscribe(status => {
       this.isLoggedIn = status;
       this.isAdmin = this.loginService.getAdminStatus();
@@ -32,5 +37,7 @@ export class GeneralWorkspaceComponent implements OnInit {
     this.nav.subscribeActiveTab().subscribe(tab => {
       this.active = tab;
     })
+    this.isLoggedIn = this.loginService.getLoginStatus();
+    this.isAdmin = this.loginService.getAdminStatus();
   }
 }

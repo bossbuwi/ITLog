@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl } from '@angular/forms';
-import { User } from 'src/app/model/user';
+import { User } from 'src/app/models/user';
 import { DashboardService } from 'src/app/services/dashboard/dashboard.service';
 
 @Component({
@@ -69,7 +69,6 @@ export class AdminMenuComponent implements OnInit {
         changedUsers.push(this.usersArr[index]);
       }
     }
-    console.log(changedUsers);
     this.dashboard.updateUsers(changedUsers);
   }
 

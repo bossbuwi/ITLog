@@ -23,6 +23,7 @@ import { CoreService } from './services/core/core.service';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { EventsService } from './services/events/events.service';
 import { NavService } from './services/nav/nav.service';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { NavService } from './services/nav/nav.service';
     AdminMenuComponent,
     SystemMenuComponent,
     RuleMenuComponent,
-    ConfigMenuComponent
+    ConfigMenuComponent,
+    PageNotFoundComponent
   ],
   imports: [
     BrowserModule,

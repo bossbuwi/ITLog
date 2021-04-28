@@ -6,14 +6,18 @@ import { MainCalendarComponent } from "./components/main-calendar/main-calendar.
 import { ReservationComponent } from "./components/reservation/reservation.component";
 import { ReportsComponent } from "./components/reports/reports.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { LoginGuard } from './guards/login.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
   { path: 'rules', component: AnnouncementsComponent },
   { path: 'calendar', component: MainCalendarComponent },
   { path: 'event', component: ReservationComponent },
-  { path: 'reports', component: ReportsComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: '',   redirectTo: '/rules', pathMatch: 'full' }
+  { path: 'reports', component: ReportsComponent, canActivate: [LoginGuard, AdminGuard] },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [LoginGuard, AdminGuard] },
+  { path: '',   redirectTo: '/rules', pathMatch: 'full' },
+  { path: '**', component: PageNotFoundComponent}
 ];
 
 @NgModule({

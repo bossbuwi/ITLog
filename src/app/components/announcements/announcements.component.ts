@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Rule } from "../../model/rule";
-import { System } from "../../model/system";
+import { Rule } from "../../models/rule";
+import { System } from "../../models/system";
 import { CoreService } from 'src/app/services/core/core.service';
-import { ErrorCodes } from 'src/app/model/constants/properties';
+import { ErrorCodes } from 'src/app/models/constants/properties';
 import { NavService } from 'src/app/services/nav/nav.service';
 
 @Component({

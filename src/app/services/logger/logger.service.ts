@@ -3,7 +3,7 @@ import { formatDate } from '@angular/common';
 
 import { CoreService } from "../core/core.service";
 
-import { ConfigNames, LoggingLevel, ErrorCodes } from "../../model/constants/properties";
+import { ConfigNames, LoggingLevel, ErrorCodes } from "../../models/constants/properties";
 
 @Injectable({
   providedIn: 'root'

@@ -1,3 +1,25 @@
 <div class="container-fluid">
-  <h3>The developers are still sleeping, I mean, working hard to finish this page. Please come back later.</h3>
+  <h4 class="title">Modify Rules</h4>
+  <small class="help">Modify existing rules or add new ones. Marked fields are required. The Save button will not be enabled unless required fields are marked with a check.
+    To delete a rule, delete the field contents and input an *.</small><br>
+  <small class="help warning">Warning! The form will not automatically update to display deleted rules (those marked with an asterisk).
+    To update the rules, change tabs on the left and then return to the Rules tab, or just reload the page. The form will however, automatically display any new or edited rules.</small>
+  <form class="form rule-form" [formGroup]="ruleForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="btn-group" role="group" aria-label="Save and Add">
+      <button type="submit" class="btn btn-primary" id="save" [disabled]="ruleForm.invalid || updateComplete" *ngIf="!ruleForm.pristine">{{updateComplete ? 'Saved!' : 'Save'}}</button>
+      <button type="button" class="btn btn-primary" id="add" [disabled]="ruleForm.invalid" (click)="addNewRuleField()">Add Rule</button>
+    </div>
+    <div formArrayName="rules" class="form-array">
+      <div *ngFor="let rule of rules.controls; let i=index">
+        <div [formGroupName]="i">
+          <div class="form-group row">
+            <label for="statement{{i}}" class="col-form-label">#{{i + 1}}</label>
+            <div class="col-sm-11">
+              <input type="text" class="form-control" id="statement{{i}}" formControlName="statement" [ngClass]="{'is-invalid': rule.get('statement').invalid, 'is-valid': rule.get('statement').valid}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>

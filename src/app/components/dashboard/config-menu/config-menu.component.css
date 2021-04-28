@@ -1,0 +1,19 @@
+.help {
+  font-style: italic;
+}
+
+.warning {
+  font-weight: bold;
+}
+
+.config-form {
+  margin-top: 10px;
+}
+
+.config-name {
+  font-weight: bold;
+}
+
+.config-description {
+  font-style: italic;
+}

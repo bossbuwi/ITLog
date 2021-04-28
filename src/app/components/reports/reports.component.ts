@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { EventsService } from "../../services/events/events.service";
-import { Event } from "../../model/event";
+import { Event } from "../../models/event";
 import { NavService } from 'src/app/services/nav/nav.service';
 import { LoginService } from 'src/app/services/login/login.service';
-import { System } from 'src/app/model/system';
+import { System } from 'src/app/models/system';
 import { CoreService } from 'src/app/services/core/core.service';
 
 @Component({
@@ -82,7 +82,6 @@ export class ReportsComponent implements OnInit {
    * @param $event
    */
   onSubmit($event: any): void {
-    console.log($event.submitter.id);
     if ($event.submitter.id == 'search') {
       this.reportForm.controls['requestReport'].setValue(false);
       this.eventServ.requestReport(this.reportForm);
