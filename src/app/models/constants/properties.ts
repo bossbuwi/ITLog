@@ -5,7 +5,7 @@ export class ConfigNames {
 }
 
 export class RestUrls {
-  private static REST_SERVER: string = 'http://mancswcbman0278:8080/api';
+  private static REST_SERVER: string = 'http://localhost:8080/api';
   public static REST_GET_CONFIG: string = RestUrls.REST_SERVER + '/config';
   public static REST_POST_CONFIG: string = RestUrls.REST_SERVER + '/config';
   public static REST_GET_RULES: string = RestUrls.REST_SERVER + '/rules';
