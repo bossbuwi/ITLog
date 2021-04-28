@@ -1,8 +1,8 @@
-# ITLog
+# IT Log
 ## _The Irresistible Technical Event Logs_
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.5.<br>
-This project was made to serve as the event logger for users of the team's domain system. The version releases are [here](https://github.com/bossbuwi/itlog/releases). Current version is 0.1-beta and is ready for production. This project is just the frontend for an event logging app. For this to function completely, a compatible backend that serves data through a REST API must be used. The recommended backend provider is [bilog](https://github.com/bossbuwi/bilog).
+This project was made to serve as the event logger for users of the team's domain system. The version releases are [here](https://github.com/bossbuwi/itlog/releases). Current version is 1.0-Ara and is ready for production. This project is just the frontend for an event logging app. For this to function completely, a compatible backend that serves data through a REST API must be used. The recommended backend provider is [bilog](https://github.com/bossbuwi/bilog).
 
 ### Setup for Development
 #### Prerequisites
