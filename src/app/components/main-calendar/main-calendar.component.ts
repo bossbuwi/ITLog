@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {NgbDateStruct, NgbCalendar, NgbDate} from '@ng-bootstrap/ng-bootstrap';
 
-import { Event } from "../../model/event";
-import { ErrorCodes } from 'src/app/model/constants/properties';
+import { Event } from "../../models/event";
+import { ErrorCodes } from 'src/app/models/constants/properties';
 
 import { LoggerService } from "../../services/logger/logger.service";
 import { EventsService } from "../../services/events/events.service";
@@ -34,7 +34,12 @@ export class MainCalendarComponent implements OnInit {
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
       this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
     }
+  }
+
+  private initializeComponent() {
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
     //sets the active tab to the calendar tab upon loading
     //for those users who bookmarked the url

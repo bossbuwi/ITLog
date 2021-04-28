@@ -1,3 +1,66 @@
 <div class="container-fluid">
-  <h3>The developers are still sleeping, I mean, working hard to finish this page. Please come back later.</h3>
+  <h4 class="title">Modify System Information</h4>
+  <small class="help">Add and modify system details. Deletion of systems are disabled for security reasons. Marked fields are required. The Save button will not be enabled unless required fields are marked with a check.</small><br>
+  <small class="help warning">Warning! Modifying the details of an existing system will not update the events that are previously logged under
+    that particular system. This could result in events logged under a system with a changed global or zonal prefix to be unsearchable with system or zone specific
+    queries. As such, care must be exercised when modifying system details especially the global and zone prefixes.
+  </small>
+  <form class="form system-form" [formGroup]="systemForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="btn-group" role="group" aria-label="Save and Add">
+      <button type="submit" class="btn btn-primary" id="save" [disabled]="systemForm.invalid || updateComplete" *ngIf="!systemForm.pristine">{{updateComplete ? 'Saved!' : 'Save'}}</button>
+      <button type="button" class="btn btn-primary" id="add" [disabled]="systemForm.invalid" (click)="addNewSystemFields()">Add System</button>
+    </div>
+    <div formArrayName="systems" class="form-array">
+      <div *ngFor="let system of systems.controls; let i=index">
+        <div class="card system-details">
+          <div class="card-body">
+            <div [formGroupName]="i">
+              <div class="form-row">
+                <div class="form-group col-1">
+                  <label for="globalPrefix{{i}}" class="form-label">Global Prefix</label>
+                  <input type="text" class="form-control" id="globalPrefix{{i}}" formControlName="globalPrefix" [ngClass]="{'is-invalid': system.get('globalPrefix').invalid, 'is-valid': system.get('globalPrefix').valid}">
+                </div>
+                <div class="form-group col-2">
+                  <label for="machine{{i}}" class="form-label">Machine</label>
+                  <input type="text" class="form-control" id="machine{{i}}" formControlName="machine" [ngClass]="{'is-invalid': system.get('machine').invalid, 'is-valid': system.get('machine').valid}">
+                </div>
+                <div class="form-group col-5">
+                  <label for="systemUrl{{i}}" class="form-label">Web Address</label>
+                  <input type="text" class="form-control" id="systemUrl{{i}}" formControlName="systemUrl" [ngClass]="{'is-invalid': system.get('systemUrl').invalid, 'is-valid': system.get('systemUrl').valid}">
+                </div>
+                <div class="form-group col-4">
+                  <label for="loginNames{{i}}" class="form-label">Users</label>
+                  <input type="text" class="form-control" id="loginNames{{i}}" formControlName="loginNames" [ngClass]="{'is-invalid': system.get('loginNames').invalid, 'is-valid': system.get('loginNames').valid}">
+                  <small id="systemAdminHelp" class="form-text text-muted">Please separate entries with a comma and a space.</small>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-2">
+                  <label for="zone1Prefix{{i}}" class="form-label">Zone 1 Prefix</label>
+                  <input type="text" class="form-control is-valid" id="zone1Prefix{{i}}" formControlName="zone1Prefix" [ngClass]="{'is-invalid': system.get('zone1Prefix').invalid, 'is-valid': system.get('zone1Prefix').valid}">
+                </div>
+                <div class="form-group col-2">
+                  <label for="zone1Name{{i}}" class="form-label">Zone 1 Name</label>
+                  <input type="text" class="form-control is-valid" id="zone1Name{{i}}" formControlName="zone1Name" [ngClass]="{'is-invalid': system.get('zone1Name').invalid, 'is-valid': system.get('zone1Name').valid}">
+                </div>
+                <div class="form-group col-2">
+                  <label for="zone2Prefix{{i}}" class="form-label">Zone 2 Prefix</label>
+                  <input type="text" class="form-control is-valid" id="zone2Prefix{{i}}" formControlName="zone2Prefix" [ngClass]="{'is-invalid': system.get('zone2Prefix').invalid, 'is-valid': system.get('zone2Prefix').valid}">
+                </div>
+                <div class="form-group col-2">
+                  <label for="zone2Name{{i}}" class="form-label">Zone 2 Name</label>
+                  <input type="text" class="form-control is-valid" id="zone2Name{{i}}" formControlName="zone2Name" [ngClass]="{'is-invalid': system.get('zone2Name').invalid, 'is-valid': system.get('zone2Name').valid}">
+                </div>
+                <div class="form-group col-4">
+                  <label for="systemAdmin{{i}}" class="form-label">System Admins</label>
+                  <input type="text" class="form-control is-valid" id="systemAdmin{{i}}" formControlName="systemAdmin" [ngClass]="{'is-invalid': system.get('systemAdmin').invalid, 'is-valid': system.get('systemAdmin').valid}">
+                  <small id="systemAdminHelp" class="form-text text-muted">Please separate entries with a comma and a space.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>

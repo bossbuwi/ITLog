@@ -5,7 +5,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { LoggerService } from 'src/app/services/logger/logger.service';
 import { LoginService } from "../../services/login/login.service";
 
-import { ErrorCodes } from "../../model/constants/properties";
+import { ErrorCodes } from "../../models/constants/properties";
 import { CoreService } from 'src/app/services/core/core.service';
 
 @Component({
@@ -15,7 +15,7 @@ import { CoreService } from 'src/app/services/core/core.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
-  private className: string = NavbarComponent.name;
+  private className: string = 'NavbarComponent';
   //fields used by the template
   isLoggedIn: boolean; //flag to check if user is logged in
   isAdmin: boolean; //flag to check if user is admin
@@ -32,7 +32,12 @@ export class NavbarComponent implements OnInit {
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
       this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
     }
+  }
+
+  private initializeComponent() {
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
     //creates the login formgroup object
     this.loginForm = this.createLoginFormGroup();
@@ -45,6 +50,9 @@ export class NavbarComponent implements OnInit {
     this.loginService.subscribeLoginErrors().subscribe(loginErrors => {
       this.checkErrors(loginErrors);
     });
+    this.isLoggedIn = this.loginService.getLoginStatus();
+    this.isAdmin = this.loginService.getAdminStatus();
+    this.username = this.loginService.getUsername();
   }
 
   /**

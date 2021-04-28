@@ -1,17 +1,23 @@
 export class ConfigNames {
   public static CONF_LOGGING_LEVEL: string = 'loglevel';
+  public static CONF_SEED: string = 'primaryseed';
+  public static CONF_KEY: string = 'keycode';
 }
 
 export class RestUrls {
-  private static REST_SERVER: string = 'http://localhost:8080/api';
+  private static REST_SERVER: string = 'http://mancswcbman0278:8080/api';
   public static REST_GET_CONFIG: string = RestUrls.REST_SERVER + '/config';
+  public static REST_POST_CONFIG: string = RestUrls.REST_SERVER + '/config';
   public static REST_GET_RULES: string = RestUrls.REST_SERVER + '/rules';
+  public static REST_POST_RULES: string = RestUrls.REST_SERVER + '/rules';
   public static REST_LDAP_URL: string = RestUrls.REST_SERVER + '/login/';
   public static REST_GET_EVENT: string = RestUrls.REST_SERVER + '/event';
   public static REST_POST_EVENT: string = RestUrls.REST_SERVER + '/reserve';
   public static REST_GENERATE_REPORT: string = RestUrls.REST_SERVER + '/report';
   public static REST_GET_SYSTEMS: string = RestUrls.REST_SERVER + '/systems';
+  public static REST_POST_SYSTEMS: string = RestUrls.REST_SERVER + '/systems';
   public static REST_GET_USERS: string = RestUrls.REST_SERVER + '/users';
+  public static REST_GET_ADMIN: string = RestUrls.REST_SERVER + '/admin';
   public static REST_PUT_USERS: string = RestUrls.REST_SERVER + '/users';
 }
 
@@ -50,4 +56,11 @@ export class FormMode {
   public static FORM_INSERT: string = 'insert';
   public static FORM_EDIT: string = 'edit';
   public static FORM_CONFIRM: string = 'confirm';
+}
+
+export class LoginPersistence {
+  public static KEY_STORAGE: string = 'SHIELD';
+  public static ENCODING_STREAM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz';
+  public static KEY_USERNAME: string = 'FITZ';
+  public static KEY_ADMIN: string = 'SIMMONS';
 }

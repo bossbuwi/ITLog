@@ -8,9 +8,9 @@ import { catchError, retry } from 'rxjs/operators';
 import { CoreService } from "../core/core.service";
 import { LoggerService } from "../logger/logger.service";
 
-import { Event } from "../../model/event";
-import { Query } from "../../model/query";
-import { RestUrls, ErrorCodes, EventTypes, EventTypesREST } from "../../model/constants/properties";
+import { Event } from "../../models/event";
+import { Query } from "../../models/query";
+import { RestUrls, ErrorCodes, EventTypes, EventTypesREST } from "../../models/constants/properties";
 
 @Injectable({
   providedIn: 'root'
@@ -191,7 +191,6 @@ export class EventsService {
       data => {
         var evnt: Event = new Event();
         evnt = data;
-        console.log(evnt);
         this.eventEditSuccess.next(evnt);
       }, error => {
         console.log(error);
@@ -232,7 +231,6 @@ export class EventsService {
     if (form.controls['requestReport'].value == '') {
       query.requestReport = false;
     }
-    console.log(query);
     let params = new HttpParams();
     Object.keys(query).forEach(key => {
       params = params.append(key, query[key]);
@@ -252,7 +250,6 @@ export class EventsService {
     } else {
       this.http.get<Event[]>(RestUrls.REST_GENERATE_REPORT, {params: params}).subscribe(
         data => {
-          console.log(data);
           this.eventResults.next(data);
         }, error => {
           console.log(error);
