@@ -15,7 +15,6 @@ export class AnnouncementsComponent implements OnInit {
   rules: Rule[];
   systems: System[];
   selectedSystem: System;
-  systemVersion: string;
   FATALERROR: boolean;
 
   constructor(private core: CoreService, private nav: NavService) { }
