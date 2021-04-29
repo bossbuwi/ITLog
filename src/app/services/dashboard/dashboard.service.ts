@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, Subject, throwError } from 'rxjs';
 import { User } from 'src/app/models/user';
-import { RestUrls } from 'src/app/models/constants/properties';
+import { ConfigNames, RestUrls } from 'src/app/models/constants/properties';
 import { System } from 'src/app/models/system';
 import { Rule } from 'src/app/models/rule';
 import { Config } from 'protractor';
+import { CoreService } from '../core/core.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class DashboardService {
   configsUpdate: Subject<boolean>;
 
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private core: CoreService) {
     this.initializeService();
   }
 
@@ -98,7 +99,7 @@ export class DashboardService {
   }
 
   updateConfigs(configs: Config[]): void {
-    this.rulesUpdate.next(false);
+    this.configsUpdate.next(false);
     this.http.post(RestUrls.REST_POST_CONFIG, configs).subscribe(data => {
     }, error => {
       console.log(error);

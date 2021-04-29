@@ -9,7 +9,7 @@
       <li [ngbNavItem]="3" routerLink="/event">
         <a ngbNavLink>Event</a>
       </li>
-      <li [ngbNavItem]="4" *ngIf="isAdmin" routerLink="/reports">
+      <li [ngbNavItem]="4" *ngIf="isAdmin || (openReports && isLoggedIn)" routerLink="/reports">
         <a ngbNavLink>Reports</a>
       </li>
       <li [ngbNavItem]="5" *ngIf="isAdmin" routerLink="/dashboard">

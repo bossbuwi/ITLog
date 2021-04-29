@@ -24,6 +24,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { EventsService } from './services/events/events.service';
 import { NavService } from './services/nav/nav.service';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { DashboardService } from './services/dashboard/dashboard.service';
 
 @NgModule({
   declarations: [
@@ -60,7 +61,8 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
     NavService,
     LoggerService,
     EventsService,
-    CoreService
+    CoreService,
+    DashboardService
   ],
   bootstrap: [AppComponent]
 })

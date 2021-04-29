@@ -1,4 +1,4 @@
-<div class="container-fluid" *ngIf="isAdmin">
+<div class="container-fluid" *ngIf="isAdmin || (openReports && isLoggedIn)">
   <h3 class= "report-title">Search Events</h3>
   <small class="help">Search events and generate reports. The report may be displayed on a table or be downloaded as a spreadsheet for offline viewing.<br>
     Note: The "Current System Version" will only be enabled if a specific system has been selected. Checking the field will in turn disable the date
@@ -121,7 +121,7 @@
       If you are not supposed to be in this page, please click <a href="/rules">here.</a></span></h3>
   </div>
 </div>
-<div id="outer" class="container" *ngIf="isLoggedIn && !isAdmin">
+<div id="outer" class="container" *ngIf="isLoggedIn && !isAdmin && !openReports">
   <div id="inner">
     <h3><span id="loading-text">
       It appears that you do not have sufficient authority to access this page.

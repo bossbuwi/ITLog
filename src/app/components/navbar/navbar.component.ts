@@ -5,7 +5,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { LoggerService } from 'src/app/services/logger/logger.service';
 import { LoginService } from "../../services/login/login.service";
 
-import { ErrorCodes } from "../../models/constants/properties";
+import { ConfigNames, ErrorCodes } from "../../models/constants/properties";
 import { CoreService } from 'src/app/services/core/core.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class NavbarComponent implements OnInit {
   hasErrors: boolean; //flag to display errors on template
   loginForm: FormGroup; //group for login form
   FATALERROR: boolean;
+  displayAuthor: boolean;
 
   private password: string; //property to hold the user's password
 
@@ -64,6 +65,15 @@ export class NavbarComponent implements OnInit {
       username: new FormControl(),
       password: new FormControl()
     });
+  }
+
+  private checkDisplayAuthor(): void {
+    if (this.core.getConfigValue(ConfigNames.CONF_DISPLAY_AUTHOR) == 'Y') {
+      this.displayAuthor = true;
+    }
+    else {
+      this.displayAuthor = false;
+    }
   }
 
   /**
@@ -147,6 +157,7 @@ export class NavbarComponent implements OnInit {
   }
 
   displayAbout(modal: any): void {
+    this.checkDisplayAuthor();
     this.modalPopUp.open(modal, { scrollable: true, size: 'lg' });
   }
 
