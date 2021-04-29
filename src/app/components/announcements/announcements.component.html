@@ -4,13 +4,14 @@
       <div class="container-fluid">
         <h4 class="system-details">System Details</h4>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item form-inline">Global Prefix:
-            <select class="form-control" (change)="onChange($event.target.value)">
+          <li class="list-group-item form-inline">Select System:
+            <select class="custom-select" (change)="onChange($event.target.value)">
               <option *ngFor="let system of systems; let i = index" [value]="systems[i].globalPrefix">
-                {{systems[i].globalPrefix}}
+                {{systems[i].globalPrefix}} System
               </option>
             </select>
           </li>
+          <li class="list-group-item" *ngIf="systems.length > 0">Global Prefix: {{selectedSystem.globalPrefix}}</li>
           <li class="list-group-item" *ngIf="systems.length > 0">URL: <a href="{{selectedSystem.systemUrl}}">{{selectedSystem.systemUrl}}</a></li>
           <li class="list-group-item" *ngIf="systems.length > 0">Machine: {{selectedSystem.machine}}</li>
           <li class="list-group-item" *ngIf="systems.length > 0">Zone 1: {{selectedSystem.zone1Prefix}} - {{selectedSystem.zone1Name}}</li>
