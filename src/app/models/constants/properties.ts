@@ -3,7 +3,7 @@ export class ConfigNames {
   public static CONF_SEED: string = 'primaryseed';
   public static CONF_KEY: string = 'keycode';
   public static CONF_DISPLAY_AUTHOR: string = 'displayauthor';
-  public static CONF_OFFLINE: string = 'offline';
+  public static CONF_NAVTAB_DESIGN: string = 'navtabsdesign';
   public static CONF_OPEN_REPORTS: string = 'openreports';
 }
 

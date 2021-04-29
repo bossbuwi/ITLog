@@ -16,7 +16,7 @@ const routes: Routes = [
   { path: 'event', component: ReservationComponent },
   { path: 'reports', component: ReportsComponent, canActivate: [LoginGuard, AdminGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [LoginGuard, AdminGuard] },
-  { path: '',   redirectTo: '/rules', pathMatch: 'full' },
+  { path: '',   redirectTo: '/calendar', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent}
 ];
 

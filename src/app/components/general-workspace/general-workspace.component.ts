@@ -17,6 +17,7 @@ export class GeneralWorkspaceComponent implements OnInit {
   isLoggedIn: boolean;
   isAdmin: boolean;
   openReports: boolean;
+  navTabsDesign: string;
   FATALERROR: boolean;
 
   constructor(private loginService: LoginService, private nav: NavService,
@@ -41,6 +42,7 @@ export class GeneralWorkspaceComponent implements OnInit {
     this.isLoggedIn = this.loginService.getLoginStatus();
     this.isAdmin = this.loginService.getAdminStatus();
     this.checkOpenReports();
+    this.checkNavTabsDesign();
   }
 
   private checkOpenReports(): void {
@@ -49,5 +51,9 @@ export class GeneralWorkspaceComponent implements OnInit {
     } else {
       this.openReports = false;
     }
+  }
+
+  private checkNavTabsDesign(): void {
+    this.navTabsDesign = this.core.getConfigValue(ConfigNames.CONF_NAVTAB_DESIGN);
   }
 }
