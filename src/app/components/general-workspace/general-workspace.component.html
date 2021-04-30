@@ -1,5 +1,5 @@
 <div class="container-fluid" *ngIf="!FATALERROR">
-  <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs">
+  <ul ngbNav #nav="ngbNav" [(activeId)]="active" [ngClass]="navTabsDesign == 'C' ? 'nav-tabs' : navTabsDesign == 'M' ? 'nav-pills' : 'nav-tabs'">
       <li [ngbNavItem]="1" routerLink="/rules">
         <a ngbNavLink>Details and Rules</a>
       </li>
@@ -9,7 +9,7 @@
       <li [ngbNavItem]="3" routerLink="/event">
         <a ngbNavLink>Event</a>
       </li>
-      <li [ngbNavItem]="4" *ngIf="isAdmin" routerLink="/reports">
+      <li [ngbNavItem]="4" *ngIf="isAdmin || (openReports && isLoggedIn)" routerLink="/reports">
         <a ngbNavLink>Reports</a>
       </li>
       <li [ngbNavItem]="5" *ngIf="isAdmin" routerLink="/dashboard">

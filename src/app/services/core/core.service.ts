@@ -213,10 +213,10 @@ export class CoreService {
    * @returns
    */
   getConfigValue(configName: string, secured: boolean = false): string {
-    var locale: string = 'en-US';
-    var date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss", locale);
-    var configValue: string = this.configs.find(x => x.name == configName).value;
-    var logEvent: string = '[' + date + '] ' + this.className + '.' + 'getConfig' + '(): ' +
+    let locale: string = 'en-US';
+    let date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss", locale);
+    let configValue: string = this.configs.find(x => x.name == configName).value;
+    let logEvent: string = '[' + date + '] ' + this.className + '.' + 'getConfig' + '(): ' +
       'Configuration: ' + configName + ' = ' + configValue;
     if (secured === false)
     console.debug(logEvent);
@@ -237,19 +237,19 @@ export class CoreService {
 
   encodeUser(username: string): void {
     console.debug('Encoding user data.');
-    var seed = parseInt(this.getConfigValue(ConfigNames.CONF_SEED, true));
-    var key: string = this.getConfigValue(ConfigNames.CONF_KEY, true);
+    let seed = parseInt(this.getConfigValue(ConfigNames.CONF_SEED, true));
+    let key: string = this.getConfigValue(ConfigNames.CONF_KEY, true);
     //create an array that will hold the individual characters
-    var result: string[] = [];
+    let result: string[] = [];
     //get the string that will be used to encode the username
-    var characters: string = LoginPersistence.ENCODING_STREAM;
-    var charactersLength = characters.length;
+    let characters: string = LoginPersistence.ENCODING_STREAM;
+    let charactersLength = characters.length;
     //get the username's length
-    var usernameLength = username.length;
+    let usernameLength = username.length;
     //encode the username into a fixed random string
-    for (var x = 0; x < usernameLength; x++) {
+    for (let x = 0; x < usernameLength; x++) {
       //generate random chars with a specific length
-      for ( var i = 0; i < seed; i++ ) {
+      for ( let i = 0; i < seed; i++ ) {
         result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
       }
       //add a character from the username after a number of random chars
@@ -257,13 +257,13 @@ export class CoreService {
     }
     //generate another set of random string after the
     // last character of the username
-    for ( var i = 0; i < seed; i++ ) {
+    for ( let i = 0; i < seed; i++ ) {
       result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
     }
     //add the key
     result.push(key);
     //add another set of random string after the key
-    for ( var i = 0; i < seed; i++ ) {
+    for ( let i = 0; i < seed; i++ ) {
       result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
     }
     console.debug('Encoding complete.');
@@ -274,7 +274,7 @@ export class CoreService {
   private decodeStoredKey(): void {
     console.debug('Checking if a user is logged in.');
     //get the stored code if there is any
-    var code: string = localStorage.getItem(LoginPersistence.KEY_STORAGE);
+    let code: string = localStorage.getItem(LoginPersistence.KEY_STORAGE);
     //check if the stored code is existing
     if (code == null) {
       console.debug('No trace of an existing user was found.');
@@ -283,36 +283,36 @@ export class CoreService {
       console.debug('A login code was found.');
       console.debug('Initiating decoding sequence.');
       //get the length of the code
-      var codeLength: number = code.length;
+      let codeLength: number = code.length;
       //get required information to decode the string
-      var seed: number = parseInt(this.getConfigValue(ConfigNames.CONF_SEED, true));
-      var key: string = this.getConfigValue(ConfigNames.CONF_KEY, true);
+      let seed: number = parseInt(this.getConfigValue(ConfigNames.CONF_SEED, true));
+      let key: string = this.getConfigValue(ConfigNames.CONF_KEY, true);
       //given the seed, key length and code length, it is possible to get the
       //length of the code that contains the actual information needed
-      var infoLength: number = codeLength - seed - key.length;
+      let infoLength: number = codeLength - seed - key.length;
       //extract the key from the code and compare it with the key from the database
-      var embeddedKey: string = code.substr(infoLength, key.length);
+      let embeddedKey: string = code.substr(infoLength, key.length);
       if (embeddedKey === key) {
         console.debug("The encoded information matched with the server's key.");
         //if the embedded key is the same as that provided by the server
         //execute the decoding process
         //start the process by removing the useless trailing characters
-        var encodedInfo = code.substr(0, infoLength);
+        let encodedInfo = code.substr(0, infoLength);
         //remove the useless preceeding characters
         encodedInfo = encodedInfo.substr(seed);
         //calculate the length of the username stored within the code
-        var usernameLength: number = (infoLength - seed) / (seed + 1);
+        let usernameLength: number = (infoLength - seed) / (seed + 1);
         //create an array the will hold the username's characters
-        var username: string[] = [];
+        let username: string[] = [];
         //iterate through the string for x times depending
         //on the assumed length of the username stored on the code
-        for (var i = 0; i < usernameLength; i++) {
+        for (let i = 0; i < usernameLength; i++) {
           //calculate where the current character of the username should be
-          var pointer: number = (i * seed) + i;
+          let pointer: number = (i * seed) + i;
           //push the character to the username array
           username.push(encodedInfo.substr(pointer, 1))
         }
-        var decodedUser: string = username.join('');
+        let decodedUser: string = username.join('');
         console.debug('User with id: ' + decodedUser + ' found.');
         console.debug('Communicating with server for authentication.');
         this.fetchUserInfo(decodedUser);

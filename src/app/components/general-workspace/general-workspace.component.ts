@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { ErrorCodes } from 'src/app/models/constants/properties';
+import { ConfigNames, ErrorCodes } from 'src/app/models/constants/properties';
 
 import { LoginService } from "../../services/login/login.service";
 import { NavService } from "../../services/nav/nav.service";
@@ -16,6 +16,8 @@ export class GeneralWorkspaceComponent implements OnInit {
   active = 1;
   isLoggedIn: boolean;
   isAdmin: boolean;
+  openReports: boolean;
+  navTabsDesign: string;
   FATALERROR: boolean;
 
   constructor(private loginService: LoginService, private nav: NavService,
@@ -39,5 +41,19 @@ export class GeneralWorkspaceComponent implements OnInit {
     })
     this.isLoggedIn = this.loginService.getLoginStatus();
     this.isAdmin = this.loginService.getAdminStatus();
+    this.checkOpenReports();
+    this.checkNavTabsDesign();
+  }
+
+  private checkOpenReports(): void {
+    if (this.core.getConfigValue(ConfigNames.CONF_OPEN_REPORTS) == 'Y') {
+      this.openReports = true;
+    } else {
+      this.openReports = false;
+    }
+  }
+
+  private checkNavTabsDesign(): void {
+    this.navTabsDesign = this.core.getConfigValue(ConfigNames.CONF_NAVTAB_DESIGN);
   }
 }

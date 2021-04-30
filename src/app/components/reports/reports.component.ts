@@ -7,6 +7,7 @@ import { NavService } from 'src/app/services/nav/nav.service';
 import { LoginService } from 'src/app/services/login/login.service';
 import { System } from 'src/app/models/system';
 import { CoreService } from 'src/app/services/core/core.service';
+import { ConfigNames } from 'src/app/models/constants/properties';
 
 @Component({
   selector: 'app-reports',
@@ -17,6 +18,7 @@ export class ReportsComponent implements OnInit {
   isLoggedIn: boolean;
   isAdmin: boolean;
   username: string;
+  openReports: boolean;
   isCollapsed = true;
   reportForm: FormGroup;
   eventResults: Event[];
@@ -39,6 +41,7 @@ export class ReportsComponent implements OnInit {
     this.isLoggedIn = this.login.getLoginStatus();
     this.isAdmin = this.login.getAdminStatus();
     this.username = this.login.getUsername();
+    this.checkOpenReports();
     this.login.subscribeUserStatus().subscribe(status => {
       //broadcasted changes in online status is also saved locally
       //form must be initialized afterwards to be able to be seen
@@ -140,6 +143,14 @@ export class ReportsComponent implements OnInit {
     } else {
       var zones: any[] = [];
       return zones;
+    }
+  }
+
+  private checkOpenReports(): void {
+    if (this.core.getConfigValue(ConfigNames.CONF_OPEN_REPORTS) == 'Y') {
+      this.openReports = true;
+    } else {
+      this.openReports = false;
     }
   }
 }
