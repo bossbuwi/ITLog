@@ -1,0 +1,47 @@
+[
+  {
+    "groupName": "resturls",
+    "details": {
+      "REST_SERVER": "http://localhost:8080/api",
+      "REST_GET_CONFIG": "/config",
+      "REST_POST_CONFIG": "/config",
+      "REST_GET_RULES": "/rules",
+      "REST_POST_RULES": "/rules",
+      "REST_LDAP_URL": "/login",
+      "REST_GET_EVENT": "/event",
+      "REST_POST_EVENT": "/reserve",
+      "REST_GENERATE_REPORT": "/report",
+      "REST_GET_SYSTEMS": "/systems",
+      "REST_GET_SYSTEM_VERSION": "/system_version",
+      "REST_POST_SYSTEMS": "/systems",
+      "REST_GET_USERS": "/users",
+      "REST_GET_ADMIN": "/admin",
+      "REST_PUT_USERS": "/users",
+      "REST_GET_EVENT_TYPES": "/types"
+    }
+  },
+
+  {
+    "groupName": "loginpersistence",
+    "details": {
+      "KEY_STORAGE": "SHIELD",
+      "ENCODING_STREAM": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz",
+      "KEY_USERNAME": "LINCOLN",
+      "KEY_ADMIN": "DAISY"
+    }
+  },
+
+  {
+    "groupName": "webproperties",
+    "details": {
+      "APP_TITLE": "FT Logs",
+      "APP_DESCRIPTION": "The Irresitible Technical Logs for FT's Domain System",
+      "APP_DEVELOPER": "Mj Mananghaya",
+      "APP_FRONTEND": "IT Log",
+      "APP_FRONTEND_VERSION": "2.0 (Boötes)",
+      "APP_BACKEND_PROVIDER": "Data Circle",
+      "APP_BACKEND_VERSION": "2.0 (Bismuth)",
+      "APP_FOOTER": "Company Name 2021"
+    }
+  }
+]

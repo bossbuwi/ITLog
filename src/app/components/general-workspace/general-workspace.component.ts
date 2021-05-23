@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 
-import { ConfigNames, ErrorCodes } from 'src/app/models/constants/properties';
+import { ConfigNames, ErrorCodes } from 'src/app/constants/properties';
 
-import { LoginService } from "../../services/login/login.service";
-import { NavService } from "../../services/nav/nav.service";
+import { LoginService } from "src/app/services/login/login.service";
+import { NavService } from "src/app/services/nav/nav.service";
 import { CoreService } from 'src/app/services/core/core.service';
+import { LoggerService } from 'src/app/services/logger/logger.service';
 
 @Component({
   selector: 'app-general-workspace',
@@ -13,15 +14,15 @@ import { CoreService } from 'src/app/services/core/core.service';
 })
 export class GeneralWorkspaceComponent implements OnInit {
   private className: string = 'GeneralWorkspaceComponent';
+  FATALERROR: boolean;
   active = 1;
   isLoggedIn: boolean;
   isAdmin: boolean;
   openReports: boolean;
   navTabsDesign: string;
-  FATALERROR: boolean;
 
   constructor(private loginService: LoginService, private nav: NavService,
-    private core: CoreService) {}
+    private core: CoreService, private log: LoggerService) {}
 
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
@@ -31,7 +32,8 @@ export class GeneralWorkspaceComponent implements OnInit {
     }
   }
 
-  private initializeComponent() {
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.loginService.subscribeUserStatus().subscribe(status => {
       this.isLoggedIn = status;
       this.isAdmin = this.loginService.getAdminStatus();
@@ -46,6 +48,7 @@ export class GeneralWorkspaceComponent implements OnInit {
   }
 
   private checkOpenReports(): void {
+    this.log.logVerbose(this.className, 'checkOpenReports', 'Checking for openreports configuration.');
     if (this.core.getConfigValue(ConfigNames.CONF_OPEN_REPORTS) == 'Y') {
       this.openReports = true;
     } else {
@@ -54,6 +57,7 @@ export class GeneralWorkspaceComponent implements OnInit {
   }
 
   private checkNavTabsDesign(): void {
+    this.log.logVerbose(this.className, 'checkNavTabsDesign', 'Checking for the configured navdesign.');
     this.navTabsDesign = this.core.getConfigValue(ConfigNames.CONF_NAVTAB_DESIGN);
   }
 }

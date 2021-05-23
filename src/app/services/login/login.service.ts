@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, Subject, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, Subject } from 'rxjs';
 
-import { LoggerService } from "../../services/logger/logger.service";
-import { CoreService } from "../core/core.service";
+import { LoggerService } from "src/app/services/logger/logger.service";
+import { CoreService } from "src/app/services/core/core.service";
 
-import { User } from "../../models/user";
-import { RestUrls, ErrorCodes, ConfigNames, LoginPersistence } from "../../models/constants/properties";
+import { User } from "src/app/models/user";
+import { ErrorCodes } from "src/app/constants/properties";
+import { RestUrls, LoginPersistence } from "src/app/constants/usersettings";
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +37,7 @@ export class LoginService {
    *
    */
   private initializeService(): void {
-    this.log.logVerbose(this.className, 'initializeService', 'Initiating ' + this.className + '.');
+    this.log.logVerbose(this.className, 'initializeService', 'Initializing ' + this.className +'.');
     //initiates the subjects that would be used to transmit changes to the components
     this.userStatusChange = new Subject<boolean>();
     this.userRankChange = new Subject<boolean>();
@@ -116,9 +116,9 @@ export class LoginService {
     this.usernameChange.next('');
     this.loginErrorChange.next(ErrorCodes.NO_ERRORS);
     this.userStatusChange.next(false);
-    localStorage.removeItem(LoginPersistence.KEY_STORAGE);
-    localStorage.removeItem(LoginPersistence.KEY_USERNAME);
-    localStorage.removeItem(LoginPersistence.KEY_ADMIN);
+    localStorage.removeItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_STORAGE));
+    localStorage.removeItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME));
+    localStorage.removeItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_ADMIN));
     this.log.logVerbose(this.className, 'logOutUser', 'The user has been completely logged out from the system.');
   }
 
@@ -129,12 +129,11 @@ export class LoginService {
    */
   validateUserLDAP(username: string, password: string): void {
     this.log.logVerbose(this.className, 'validateUserLDAP', 'Generating REST login query.');
-    this.log.logVerbose(this.className, 'validateUserLDAP', RestUrls.REST_LDAP_URL);
     const params: HttpParams = new HttpParams()
       .set('username', username)
       .set('password', password);
     this.log.logVerbose(this.className, 'validateUserLDAP', 'Connecting to the REST server.');
-    this.http.post<User>(RestUrls.REST_LDAP_URL, params).subscribe(
+    this.http.post<User>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_LDAP_URL), params).subscribe(
       result => {
         if (result.username === username) {
           this.log.logVerbose(this.className, 'validateUserLDAP', 'Valid credentials. Updating user object.');
@@ -159,22 +158,22 @@ export class LoginService {
 
   private autoLogin(): void {
     this.log.logVerbose(this.className, 'autoLogin', 'Initiating autologin process.');
-    if (localStorage.getItem(LoginPersistence.KEY_USERNAME) == null
-      || localStorage.getItem(LoginPersistence.KEY_ADMIN) == null) {
+    if (localStorage.getItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME)) == null
+      || localStorage.getItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_ADMIN)) == null) {
       this.log.logVerbose(this.className, 'autoLogin', 'There are no saved user information found.');
     } else {
       this.log.logVerbose(this.className, 'autoLogin', 'A saved user information is found.');
-      this.log.logVerbose(this.className, 'autoLogin', 'Logging in user with id: ' + localStorage.getItem(LoginPersistence.KEY_USERNAME) + '.');
-      this.usernameChange.next(localStorage.getItem(LoginPersistence.KEY_USERNAME));
-      if (localStorage.getItem(LoginPersistence.KEY_ADMIN) == 'true') {
+      this.log.logVerbose(this.className, 'autoLogin', 'Logging in user with id: ' + localStorage.getItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME)) + '.');
+      this.usernameChange.next(localStorage.getItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME)));
+      if (localStorage.getItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_ADMIN)) == 'true') {
         this.userRankChange.next(true);
       } else {
         this.userRankChange.next(false);
       }
       this.userStatusChange.next(true);
       this.log.logVerbose(this.className, 'autoLogin', 'Removing any persistent information.');
-      localStorage.removeItem(LoginPersistence.KEY_USERNAME);
-      localStorage.removeItem(LoginPersistence.KEY_ADMIN);
+      localStorage.removeItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME));
+      localStorage.removeItem(this.core.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_ADMIN));
     }
     this.log.logVerbose(this.className, 'autoLogin', 'Autologin process complete.');
   }

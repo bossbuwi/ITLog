@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
-import { Config } from 'protractor';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+
+import { ErrorCodes } from 'src/app/constants/properties';
+import { Configuration } from 'src/app/models/configuration';
 import { CoreService } from 'src/app/services/core/core.service';
 import { DashboardService } from 'src/app/services/dashboard/dashboard.service';
+import { LoggerService } from 'src/app/services/logger/logger.service';
 import { LoginService } from 'src/app/services/login/login.service';
 
 @Component({
@@ -11,14 +14,28 @@ import { LoginService } from 'src/app/services/login/login.service';
   styleUrls: ['./config-menu.component.css']
 })
 export class ConfigMenuComponent implements OnInit {
+  private className: string = 'ConfigMenuComponent';
+  FATALERROR: boolean;
   configForm: FormGroup;
-  configArr: Config[];
+  configArr: Configuration[];
   updateComplete: boolean;
 
   constructor(private core: CoreService, private builder: FormBuilder,
-    private dashboard: DashboardService, private login: LoginService) { }
+    private dashboard: DashboardService, private login: LoginService,
+    private log: LoggerService) {
+
+  }
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
+    }
+  }
+
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.configForm = this.createForm();
     this.configArr = [];
     this.core.fetchConfigs();
@@ -49,12 +66,12 @@ export class ConfigMenuComponent implements OnInit {
     return this.configForm.get('configs') as FormArray;
   }
 
-  addConfig(config: Config) {
+  addConfig(config: Configuration) {
     this.configs.push(this.newConfig(config));
   }
 
-  newConfig(config: Config): FormGroup {
-    var configFormGroup = this.builder.group({
+  newConfig(config: Configuration): FormGroup {
+    let configFormGroup = this.builder.group({
       id: [config.id],
       name: [config.name],
       value: [config.value, Validators.required],

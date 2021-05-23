@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 
-import { EventsService } from "../../services/events/events.service";
-import { Event } from "../../models/event";
+import { Event } from "src/app/models/event";
+import { System } from 'src/app/models/system';
+import { ConfigNames, ErrorCodes } from 'src/app/constants/properties';
+import { EventType } from 'src/app/models/eventtype';
+
 import { NavService } from 'src/app/services/nav/nav.service';
 import { LoginService } from 'src/app/services/login/login.service';
-import { System } from 'src/app/models/system';
+import { EventsService } from "../../services/events/events.service";
 import { CoreService } from 'src/app/services/core/core.service';
-import { ConfigNames } from 'src/app/models/constants/properties';
+import { LoggerService } from 'src/app/services/logger/logger.service';
 
 @Component({
   selector: 'app-reports',
@@ -15,6 +18,8 @@ import { ConfigNames } from 'src/app/models/constants/properties';
   styleUrls: ['./reports.component.css']
 })
 export class ReportsComponent implements OnInit {
+  private className: string = 'ReportsComponent';
+  FATALERROR: boolean;
   isLoggedIn: boolean;
   isAdmin: boolean;
   username: string;
@@ -26,22 +31,37 @@ export class ReportsComponent implements OnInit {
   selectedSystem: System;
   systemList: any[];
   zones: any[];
+  eventTypes: EventType[];
+  eventTypeNames: string[];
 
   constructor(private builder: FormBuilder, private eventServ: EventsService,
     private nav: NavService, private login: LoginService,
-    private core: CoreService) { }
+    private core: CoreService, private log: LoggerService) { }
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
+    }
+  }
+
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.nav.setActiveTab(4);
     this.systems = [];
     this.selectedSystem = new System();
     this.systemList = [];
     this.zones = [];
-    this.populateSystems();
+    this.eventTypes =[];
+    this.eventTypeNames = [];
+    this.eventResults = [];
     this.isLoggedIn = this.login.getLoginStatus();
     this.isAdmin = this.login.getAdminStatus();
     this.username = this.login.getUsername();
     this.checkOpenReports();
+    this.populateSystems();
+    this.setEventTypes();
     this.login.subscribeUserStatus().subscribe(status => {
       //broadcasted changes in online status is also saved locally
       //form must be initialized afterwards to be able to be seen
@@ -53,15 +73,14 @@ export class ReportsComponent implements OnInit {
       this.username = this.login.getUsername();
     });
     this.initializeForm();
-    this.eventResults = [];
     this.eventServ.subscribeGetEventResults().subscribe(data => {
       this.eventResults = data;
-    })
+    });
   }
 
   private initializeForm(): void {
     this.reportForm = this.createEventForm();
-    this.reportForm.controls['cursysver'].disable();
+    this.reportForm.controls['curSysVer'].disable();
   }
 
   /**
@@ -75,7 +94,7 @@ export class ReportsComponent implements OnInit {
       type: [''],
       startDate: [''],
       endDate: [''],
-      cursysver: [''],
+      curSysVer: [''],
       requestReport: ['']
     });
   }
@@ -98,7 +117,7 @@ export class ReportsComponent implements OnInit {
    *
    */
   private onCheckboxChange(): void {
-    if (this.reportForm.controls['cursysver'].value) {
+    if (this.reportForm.controls['curSysVer'].value) {
       this.reportForm.controls['startDate'].disable();
       this.reportForm.controls['endDate'].disable();
     } else {
@@ -109,7 +128,7 @@ export class ReportsComponent implements OnInit {
 
   private populateSystems(): void {
     this.systems = this.core.getSystems();
-    var arr: any[] = [];
+    let arr: any[] = [];
     this.systems.forEach(element => {
       arr.push(element.globalPrefix);
     })
@@ -121,13 +140,13 @@ export class ReportsComponent implements OnInit {
     if ($event == 'All') {
       this.reportForm.controls['zone'].disable();
       this.reportForm.controls['zone'].setValue('');
-      this.reportForm.controls['cursysver'].disable();
-      this.reportForm.controls['cursysver'].setValue(false);
+      this.reportForm.controls['curSysVer'].disable();
+      this.reportForm.controls['curSysVer'].setValue(false);
     } else {
       this.reportForm.controls['startDate'].enable();
       this.reportForm.controls['endDate'].enable();
       this.reportForm.controls['zone'].enable();
-      this.reportForm.controls['cursysver'].enable();
+      this.reportForm.controls['curSysVer'].enable();
       this.selectedSystem = this.systems.find(x => x.globalPrefix == $event);
       this.reportForm.controls['zone'].setValue('');
       this.zones = this.setZones();
@@ -136,14 +155,21 @@ export class ReportsComponent implements OnInit {
 
   private setZones(): any[] {
     if(Object.keys(this.selectedSystem).length > 0) {
-      var zones: any[] = ['All',
+      let zones: any[] = ['All',
         this.selectedSystem.zone1Prefix,
         this.selectedSystem.zone2Prefix];
       return zones;
     } else {
-      var zones: any[] = [];
+      let zones: any[] = [];
       return zones;
     }
+  }
+
+  private setEventTypes(): void {
+    this.eventTypes = this.core.getEventTypes();
+    this.eventTypes.forEach(element => {
+      this.eventTypeNames.push(element.name);
+    });
   }
 
   private checkOpenReports(): void {

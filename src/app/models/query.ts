@@ -4,7 +4,7 @@ export class Query {
   type: string;
   startDate: string;
   endDate: string;
-  cursysver: boolean;
+  curSysVer: boolean;
   query: string;
   requestReport: boolean;
 }

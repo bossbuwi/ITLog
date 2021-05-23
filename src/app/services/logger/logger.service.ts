@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { formatDate } from '@angular/common';
 
-import { CoreService } from "../core/core.service";
+import { CoreService } from "src/app/services/core/core.service";
 
-import { ConfigNames, LoggingLevel, ErrorCodes } from "../../models/constants/properties";
+import { ConfigNames, LoggingLevel, ErrorCodes } from "src/app/constants/properties";
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +15,8 @@ export class LoggerService {
     if (this.core.getStartUpStatus() == ErrorCodes.NO_ERRORS) {
       this.loggingLevel = core.getConfigValue(ConfigNames.CONF_LOGGING_LEVEL);
     } else {
-      this.loggingLevel = LoggingLevel.NONE;
+      this.loggingLevel = LoggingLevel.VERBOSE;
     }
-
   }
 
   private shouldLog(level: LoggingLevel) {
@@ -35,9 +34,9 @@ export class LoggerService {
   }
 
   private log(className: string, methodName: string, message: any, level = LoggingLevel.VERBOSE) {
-    var locale: string = 'en-US';
-    var date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss", locale);
-    var logEvent: string = '[' + date + '] ' + className + '.' + methodName + '(): ' + message;
+    let locale: string = 'en-US';
+    let date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss.SSS", locale);
+    let logEvent: string = '[' + date + '] ' + className + '.' + methodName + '(): ' + message;
     if (this.shouldLog(level)) {
       switch (level) {
         case LoggingLevel.ERRORS:
@@ -59,7 +58,7 @@ export class LoggerService {
     if (typeof message !== 'object') {
       this.log(className, methodName, message, LoggingLevel.ERRORS);
     } else {
-      var info: string = 'Object logged.'
+      let info: string = 'Object logged.'
       this.log(className, methodName, info, LoggingLevel.ERRORS);
       console.error(message);
     }
@@ -69,7 +68,7 @@ export class LoggerService {
     if (typeof message !== 'object') {
       this.log(className, methodName, message, LoggingLevel.WARNINGS);
     } else {
-      var info: string = 'Object logged.'
+      let info: string = 'Object logged.'
       this.log(className, methodName, info, LoggingLevel.WARNINGS);
       console.warn(message);
     }
@@ -79,7 +78,7 @@ export class LoggerService {
     if (typeof message !== 'object') {
       this.log(className, methodName, message, LoggingLevel.INFO);
     } else {
-      var info: string = 'Object logged.'
+      let info: string = 'Object logged.'
       this.log(className, methodName, info, LoggingLevel.INFO);
       console.info(message);
     }
@@ -89,7 +88,7 @@ export class LoggerService {
     if (typeof message !== 'object') {
       this.log(className, methodName, message, LoggingLevel.VERBOSE);
     } else {
-      var info: string = 'Object logged.'
+      let info: string = 'Object logged.'
       this.log(className, methodName, info, LoggingLevel.VERBOSE);
       console.debug(message);
     }

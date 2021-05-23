@@ -2,8 +2,8 @@
   -- It contains the login form, the brand logo, brand name,
   -- app title and the options menu. -->
 <nav class="navbar navbar-light bg-light" *ngIf="!FATALERROR">
-  <span class="navbar-brand">IT Log</span>
-  <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
+  <span class="navbar-brand">{{navTitle}}</span>
+  <span class="navbar-text mr-auto">{{appDescription}}</span>
   <!-- Start of the login form -->
   <form *ngIf="!isLoggedIn" class="form-inline" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
     <input
@@ -27,14 +27,15 @@
 </nav>
 <nav class="navbar navbar-light bg-light" *ngIf="FATALERROR">
   <span class="navbar-brand">IT Log</span>
-  <span class="navbar-text mr-auto">The Irresitible Technical Logs for FT's Domain System</span>
+  <span class="navbar-text mr-auto">App description should be here if not for an error.</span>
 </nav>
 <!-- Below navbar displays only during a fatal error state
   -- This navbar only has the app title and logo and the login form is removed. -->
 <div id="outer" class="container" *ngIf="FATALERROR">
   <div id="inner">
     <h3><span id="loading-text">It is embarrassing but it seems that the app has encountered a fatal error.</span></h3>
-    <small class="manual">Please contact the administrators for the error to be investigated. Meanwhile, just log your events manually on a worksheet, just like the good old days.</small>
+    <small class="manual">Please contact the administrators for the error to be investigated. Meanwhile, just log your events manually on a worksheet, just like the good old days.</small><br>
+    <small class="manual">ERROR! {{startupError}}</small>
   </div>
 </div>
 <!-- Below codes are for the About page which takes the form of a modal -->
@@ -46,9 +47,9 @@
     </button>
   </div>
   <div class="modal-body">
-    <h4>Tech Stack</h4>
+    <h4>{{appTitle}}</h4>
     <div class="container-fluid frontend">
-      <h5>Frontend</h5>
+      <h5>Frontend: {{appFrontend}} v{{appFrontendVersion}}</h5>
       <ul class="list-group list-group-flush">
         <li class="list-group-item">Angular 11.2.6</li>
         <li class="list-group-item">Angular Bootstrap 9.1.0</li>
@@ -56,23 +57,22 @@
       </ul>
     </div>
     <div class="container-fluid backend">
-      <h5>Backend</h5>
+      <h5>Backend: {{appBackend}} v{{appBackendVersion}}</h5>
       <ul class="list-group list-group-flush">
         <li class="list-group-item">Laravel Framework 8.35.1</li>
         <li class="list-group-item">MariaDB 10.4.18</li>
         <li class="list-group-item">PHP 8.0.3</li>
+        <li class="list-group-item">SimpleXLSXGen 1.0.11</li>
       </ul>
     </div>
     <div class="container-fluid others" *ngIf="displayAuthor">
       <h5>Others</h5>
       <ul class="list-group list-group-flush">
-        <li class="list-group-item">Developer: MJ Mananghaya</li>
-        <li class="list-group-item">Tech Support: Jason Adriano</li>
-        <li class="list-group-item">QA and Testers: Midas FT Team</li>
+        <li class="list-group-item">Developer: {{appDeveloper}}</li>
       </ul>
     </div>
     <div class="container-fluid copyright">
-      <small>Finastra 2021</small>
+      <small>{{appFooter}}</small>
     </div>
   </div>
 </ng-template>

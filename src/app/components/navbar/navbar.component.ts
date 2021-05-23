@@ -1,12 +1,13 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { LoggerService } from 'src/app/services/logger/logger.service';
-import { LoginService } from "../../services/login/login.service";
+import { LoginService } from "src/app/services/login/login.service";
 
-import { ConfigNames, ErrorCodes } from "../../models/constants/properties";
+import { ConfigNames, ErrorCodes } from "src/app/constants/properties";
 import { CoreService } from 'src/app/services/core/core.service';
+import { WebProperties } from 'src/app/constants/usersettings';
 
 @Component({
   selector: 'app-navbar',
@@ -16,30 +17,43 @@ import { CoreService } from 'src/app/services/core/core.service';
 })
 export class NavbarComponent implements OnInit {
   private className: string = 'NavbarComponent';
+  FATALERROR: boolean;
+  navTitle: string;
+  startupError: string;
   //fields used by the template
   isLoggedIn: boolean; //flag to check if user is logged in
   isAdmin: boolean; //flag to check if user is admin
   username: string; //property to hold the user's username
   hasErrors: boolean; //flag to display errors on template
   loginForm: FormGroup; //group for login form
-  FATALERROR: boolean;
   displayAuthor: boolean;
+  appTitle: string;
+  appDescription: string;
+  appDeveloper: string;
+  appFrontend: string;
+  appFrontendVersion: string;
+  appBackend: string;
+  appBackendVersion: string;
+  appFooter: string;
 
   private password: string; //property to hold the user's password
 
   constructor(private loginService: LoginService, private log: LoggerService,
-    private modalPopUp: NgbModal, private core: CoreService) {}
+    private modalPopUp: NgbModal, private core: CoreService) {
+
+  }
 
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
       this.FATALERROR = true;
+      this.startupError = this.core.getStartupError();
     } else {
       this.initializeComponent();
     }
   }
 
   private initializeComponent() {
-    this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     //creates the login formgroup object
     this.loginForm = this.createLoginFormGroup();
     //subscribes to the user login status from the loginservice
@@ -54,6 +68,8 @@ export class NavbarComponent implements OnInit {
     this.isLoggedIn = this.loginService.getLoginStatus();
     this.isAdmin = this.loginService.getAdminStatus();
     this.username = this.loginService.getUsername();
+    this.navTitle = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_TITLE);
+    this.populateAboutModal();
   }
 
   /**
@@ -154,6 +170,17 @@ export class NavbarComponent implements OnInit {
       this.password = null;
       this.log.logVerbose(this.className, 'logOut', 'User has logged out successfully.');
     }
+  }
+
+  private populateAboutModal(): void {
+    this.appTitle = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_TITLE);
+    this.appDescription = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_DESCRIPTION);
+    this.appDeveloper = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_DEVELOPER);
+    this.appFrontend = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_FRONTEND);
+    this.appFrontendVersion = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_FRONTEND_VERSION);
+    this.appBackend = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_BACKEND_PROVIDER);
+    this.appBackendVersion = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_BACKEND_VERSION);
+    this.appFooter = this.core.getSettingsValue(WebProperties.SETTING_GROUP, WebProperties.APP_FOOTER);
   }
 
   displayAbout(modal: any): void {
