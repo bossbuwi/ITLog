@@ -1,12 +1,15 @@
 import { formatDate } from '@angular/common';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject, Subscription } from 'rxjs';
 
-import { ConfigNames, RestUrls, ErrorCodes, LoginPersistence } from "../../models/constants/properties";
-import { Configuration } from "../../models/configuration";
-import { System } from "../../models/system";
-import { Rule } from "../../models/rule";
+import { SettingsFiles, ConfigNames, ErrorCodes } from "src/app/constants/properties";
+import { LoginPersistence, RestUrls} from "src/app/constants/usersettings";
+import { Configuration } from "src/app/models/configuration";
+import { System } from "src/app/models/system";
+import { Rule } from "src/app/models/rule";
+import { EventType } from "src/app/models/eventtype";
+import { Setting } from "src/app/models/setting";
 
 @Injectable({
   providedIn: 'root'
@@ -16,12 +19,17 @@ export class CoreService {
   private systems: System[];
   private rules: Rule[];
   private configs: Configuration[];
+  private eventTypes: EventType[];
+  private userSettings: Setting[];
   private startUpComplete: Subject<number>;
   private startupStatus: number;
+  private startupError: string;
   private fetchConfigsComplete: Subject<boolean>;
   private fetchSystemsComplete: Subject<boolean>;
   private fetchRulesComplete: Subject<boolean>;
+  private fetchEventTypesComplete: Subject<boolean>;
   private checkUserComplete: Subject<boolean>;
+  private readUserSettingsComplete: Subject<boolean>;
 
   constructor(private http: HttpClient) {
     this.initializeService();
@@ -32,40 +40,58 @@ export class CoreService {
    * and subjects from being undefined.
    */
   initializeService(): void {
-    console.debug('Initializing CoreService.');
-    console.debug('Initializing arrays and subjects.');
+    this.logger('initializeService', 'Initializing CoreService.');
+    this.logger('initializeService', 'Initializing arrays and subjects.');
     this.systems = [];
     this.rules = [];
     this.configs = [];
+    this.eventTypes = [];
     this.startUpComplete = new Subject<number>();
     this.fetchConfigsComplete = new Subject<boolean>();
     this.fetchSystemsComplete = new Subject<boolean>();
     this.fetchRulesComplete = new Subject<boolean>();
+    this.fetchEventTypesComplete = new Subject<boolean>();
     this.checkUserComplete = new Subject<boolean>();
+    this.readUserSettingsComplete = new Subject<boolean>();
+    this.logger('initializeService', 'CoreService has no access to LoggerService to avoid circular dependencies.');
+    this.logger('initializeService', 'CoreService will use default logging and will bypass any logging level set.');
   }
 
   /**
-   * Starts the app's bootup process. This method is the
-   * first of a chain of methods that executes during startup.
+   *
+   * @param methodName
+   * @param message
+   */
+  private logger(methodName: string, message: string):void {
+    let locale: string = 'en-US';
+    let date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss.SSS", locale);
+    let logEvent: string = '[' + date + '] ' + this.className + '.' + methodName + '(): ' +
+      message;
+    console.debug(logEvent);
+  }
+
+  /**
+   * Starts the app's bootup process.
    * It returns a promise just to satify Angular's requirements
    * but the actual results of the startup are broadcasted using
    * the startUpComplete subject.
-   * @returns A promise indicating that the startup
+   * @returns {Promise<boolean>} new Promise -
+   * A promise indicating that the startup
    * process has finished its execution. Note that the
    * promise would still be returned even if the app's
    * startup encountered an error and did not finish correctly.
    */
   startup():Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
-      console.debug('Preparing to fetch data from the server.');
+      this.logger('startup', 'Preparing to fetch data from the server.');
       this.fetchDataFromServer();
       this.startUpComplete.subscribe(status => {
         this.startupStatus = status;
         if (status > 0) {
-          console.debug('Application startup failed.');
+          this.logger('startup', 'Application startup failed.');
         } else {
-          console.debug('Application startup complete.');
-          console.debug('Loading app components, creating models and waking services.');
+          this.logger('startup', 'Application startup complete.');
+          this.logger('startup', 'Loading app components, creating models and waking services.');
         }
         resolve(true);
       })
@@ -73,95 +99,173 @@ export class CoreService {
     });
   }
 
+  /**
+   * Manages the chain of methods that executes during startup.
+   * Each method is virtually independent of each other. Their status
+   * is managed through a matching subscription. Each individual method
+   * has a matching Subject that broadcasts the status of the method
+   * and any error that it may have encountered.
+   */
   fetchDataFromServer(): void {
-    this.fetchConfigs();
-    var config: Subscription = this.fetchConfigsComplete.subscribe(status => {
+    this.logger('fetchDataFromServer', 'Initiating the startup chain.');
+    this.readUserSettings();
+    let setting: Subscription = this.readUserSettingsComplete.subscribe(status => {
+      if (status)
+      this.fetchConfigs();
+    });
+    let config: Subscription = this.fetchConfigsComplete.subscribe(status => {
       if (status)
       this.fetchSystems();
-    })
-    var system: Subscription = this.fetchSystemsComplete.subscribe(status => {
+    });
+    let system: Subscription = this.fetchSystemsComplete.subscribe(status => {
       if (status)
       this.fetchRules();
-    })
-    var rules: Subscription = this.fetchRulesComplete.subscribe(status => {
+    });
+    let rules: Subscription = this.fetchRulesComplete.subscribe(status => {
       if (status) {
+        this.fetchEventTypes();
+      }
+    });
+    let eventTypes: Subscription = this.fetchEventTypesComplete.subscribe(status => {
+      if (status){
         this.decodeStoredKey();
       }
-    })
-    var user: Subscription = this.checkUserComplete.subscribe(status => {
+    });
+    let user: Subscription = this.checkUserComplete.subscribe(status => {
       if (status){
         this.startUpComplete.next(ErrorCodes.NO_ERRORS)
       }
-    })
+    });
     this.startUpComplete.subscribe(status => {
+      this.logger('fetchDataFromServer', 'Startup chain finished.');
+      this.logger('fetchDataFromServer', 'Deleting subscriptions.');
       if (status == 0) {
+        setting.unsubscribe();
         config.unsubscribe();
         system.unsubscribe();
         rules.unsubscribe();
+        eventTypes.unsubscribe();
         user.unsubscribe();
       }
     })
   }
 
+  readUserSettings(): void {
+    this.logger('readUserSettings', 'Searching for the user configured JSON file.');
+    this.http.get<Setting[]>(SettingsFiles.JSON_DATA).subscribe(data => {
+      if (data.length > 0) {
+        this.logger('readUserSettings', 'JSON file found.');
+        this.logger('readUserSettings', 'Reading the user defined settings.');
+        this.userSettings = data;
+      }
+    }, error => {
+      this.logger('readUserSettings', 'There is an error reading the user defined settings.');
+      this.logger('readUserSettings', 'The JSON file may be corrupted or missing.');
+      console.log(error);
+      this.startupError = 'User settings file is either missing or corrupted.';
+      this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
+    }, () => {
+      this.readUserSettingsComplete.next(true);
+    })
+  }
+
+  /**
+   *
+   */
   fetchConfigs(): void {
-    console.debug('Attempting to fetch saved configuration.');
-    this.http.get<Configuration[]>(RestUrls.REST_GET_CONFIG).subscribe(configs => {
+    this.logger('fetchConfigs', 'Attempting to fetch configuration from server.');
+    this.http.get<Configuration[]>(this.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_CONFIG)).subscribe(configs => {
       if (configs.length > 0) {
-        console.debug('Configuration received.');
-        console.debug('Saving configuration into local storage.');
+        this.logger('fetchConfigs', 'Configuration received.');
         this.configs = configs;
       }
     }, error => {
+      this.logger('fetchConfigs', 'There is an error fetching the configuration.');
       console.log(error);
+      this.startupError = 'Cannot fetch configuration from server.';
       this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
     }, () => {
       this.fetchConfigsComplete.next(true);
     });
   }
 
+  /**
+   *
+   */
   fetchSystems(): void {
-    console.debug('Attempting to fetch saved systems.');
-    this.http.get<System[]>(RestUrls.REST_GET_SYSTEMS).subscribe(systems => {
+    this.logger('fetchSystems', 'Attempting to fetch systems from server.');
+    this.http.get<System[]>(this.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_SYSTEMS)).subscribe(systems => {
       if (systems.length > 0) {
-        console.debug('Systems received.');
-        console.debug('Saving systems into local storage.');
+        this.logger('fetchSystems', 'Systems received.');
         this.systems = systems;
       }
     }, error => {
+      this.logger('fetchSystems', 'There is an error fetching the systems.');
       console.log(error);
+      this.startupError = 'Cannot fetch systems from server.';
       this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
     }, () => {
       this.fetchSystemsComplete.next(true);
     });
   }
 
+  /**
+   *
+   */
   fetchRules(): void {
-    console.debug('Attempting to fetch saved rules.');
-    this.http.get<Rule[]>(RestUrls.REST_GET_RULES).subscribe(rules => {
+    this.logger('fetchRules', 'Attempting to fetch rules from server.');
+    this.http.get<Rule[]>(this.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_RULES)).subscribe(rules => {
       if (rules.length > 0) {
-        console.debug('Rules received.');
-        console.debug('Saving rules into local storage.');
+        this.logger('fetchRules', 'Rules received.');
         this.rules = rules;
       }
     }, error => {
+      this.logger('fetchRules', 'There is an error fetching the rules.');
       console.log(error);
+      this.startupError = 'Cannot fetch rules from server.';
       this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
     }, () => {
       this.fetchRulesComplete.next(true);
     });
   }
 
+  /**
+   *
+   */
+  fetchEventTypes(): void {
+    this.logger('fetchEventTypes', 'Attempting to fetch event types from server.');
+    this.http.get<EventType[]>(this.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_EVENT_TYPES)).subscribe(eventTypes => {
+      if (eventTypes.length > 0) {
+        this.logger('fetchEventTypes', 'Event types received.');
+        this.eventTypes = eventTypes;
+      }
+    }, error => {
+      this.logger('fetchEventTypes', 'There is an error fetching the event types.');
+      console.log(error);
+      this.startupError = 'Cannot fetch event types from server.';
+      this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
+    }, () => {
+      this.fetchEventTypesComplete.next(true);
+    });
+  }
+
+  /**
+   *
+   * @param username
+   */
   fetchUserInfo(username: string): void {
-    console.debug('Attempting to fetch information for user with id: ' + username + '.');
+    this.logger('fetchUserInfo', 'Attempting to fetch information for user with id: ' + username + '.');
     const params: HttpParams = new HttpParams()
       .set('username', username);
-    this.http.get<boolean>(RestUrls.REST_GET_ADMIN, { params }).subscribe(admin => {
-      console.debug('User information received.');
-      console.debug('Saving information in temporary keys.');
-      localStorage.setItem(LoginPersistence.KEY_USERNAME, username);
-      localStorage.setItem(LoginPersistence.KEY_ADMIN, String(admin));
+    this.http.get<boolean>(this.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_ADMIN), { params }).subscribe(admin => {
+      this.logger('fetchUserInfo', 'User information received.');
+      this.logger('fetchUserInfo', 'Saving information in temporary keys.');
+      localStorage.setItem(this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_USERNAME), username);
+      localStorage.setItem(this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_ADMIN), String(admin));
     }, error => {
+      this.logger('fetchUserInfo', 'There is an error fetching the user data.');
       console.log(error);
+      this.startupError = 'Cannot fetch user data from server.';
       this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
     }, () => {
       this.checkUserComplete.next(true);
@@ -199,6 +303,14 @@ export class CoreService {
   }
 
   /**
+   *
+   * @returns
+   */
+  getEventTypes(): EventType[] {
+    return this.eventTypes;
+  }
+
+  /**
    * Gets the result of the boot process. The numeric constant
    * returned by this method is described on the properties file.
    * @returns The startup status in form of numeric constant.
@@ -208,41 +320,90 @@ export class CoreService {
   }
 
   /**
-   * Gets the value
+   *
+   * @returns
+   */
+  getStartupError(): string {
+    if (this.startupStatus == ErrorCodes.FATAL_ERROR) {
+      return this.startupError;
+    } else {
+      return 'No startup error reported.';
+    }
+  }
+
+  /**
+   *
    * @param configName
+   * @param secured
    * @returns
    */
   getConfigValue(configName: string, secured: boolean = false): string {
-    let locale: string = 'en-US';
-    let date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss", locale);
+    let logLevel: string = this.configs.find(x => x.name == ConfigNames.CONF_LOGGING_LEVEL).value;
     let configValue: string = this.configs.find(x => x.name == configName).value;
-    let logEvent: string = '[' + date + '] ' + this.className + '.' + 'getConfig' + '(): ' +
-      'Configuration: ' + configName + ' = ' + configValue;
-    if (secured === false)
-    console.debug(logEvent);
+    if (logLevel !== 'N') {
+      if (secured === false) {
+        this.logger('getConfigValue', 'Configuration: ' + configName + ' = ' + configValue);
+      }
+    }
     return configValue;
   }
 
+  getSettingsValue(groupName: string, settingKey: string): string {
+    // let settingsValue: string = this.userSettings.find(x => x.groupName == groupName).details[settingKey];
+    let settingsValue: string;
+    switch (groupName) {
+      case RestUrls.SETTING_GROUP:
+        let serverAddress: string = this.userSettings.find(x => x.groupName == groupName).details[RestUrls.REST_SERVER];
+        let restEndpoint: string = this.userSettings.find(x => x.groupName == groupName).details[settingKey];
+        settingsValue = serverAddress + restEndpoint;
+        break;
+      default:
+        settingsValue = this.userSettings.find(x => x.groupName == groupName).details[settingKey];
+        break;
+    }
+    return settingsValue;
+  }
+
+  /**
+   *
+   * @returns
+   */
   subscribeConfigsComplete():  Observable<boolean> {
     return this.fetchConfigsComplete.asObservable();
   }
 
+  /**
+   *
+   * @returns
+   */
   subscribeSystemsComplete():  Observable<boolean> {
     return this.fetchSystemsComplete.asObservable();
   }
 
+  /**
+   *
+   * @returns
+   */
   subscribeRulesComplete():  Observable<boolean> {
     return this.fetchRulesComplete.asObservable();
   }
 
+  subscribeReadUserSettingsComplete(): Observable<boolean> {
+    return this.readUserSettingsComplete.asObservable();
+  }
+
+  /**
+   *
+   * @param username
+   */
   encodeUser(username: string): void {
-    console.debug('Encoding user data.');
+    this.logger('encodeUser', 'Encoding user data.');
     let seed = parseInt(this.getConfigValue(ConfigNames.CONF_SEED, true));
     let key: string = this.getConfigValue(ConfigNames.CONF_KEY, true);
     //create an array that will hold the individual characters
     let result: string[] = [];
     //get the string that will be used to encode the username
-    let characters: string = LoginPersistence.ENCODING_STREAM;
+    let characters: string = this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.ENCODING_STREAM);
     let charactersLength = characters.length;
     //get the username's length
     let usernameLength = username.length;
@@ -266,22 +427,25 @@ export class CoreService {
     for ( let i = 0; i < seed; i++ ) {
       result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
     }
-    console.debug('Encoding complete.');
+    this.logger('encodeUser', 'Encoding complete.');
     //store the resulting string as key value pair
-    localStorage.setItem(LoginPersistence.KEY_STORAGE, result.join(''));
+    localStorage.setItem(this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_STORAGE), result.join(''));
   }
 
+  /**
+   *
+   */
   private decodeStoredKey(): void {
-    console.debug('Checking if a user is logged in.');
+    this.logger('decodeStoredKey', 'Checking if a user is logged in.');
     //get the stored code if there is any
-    let code: string = localStorage.getItem(LoginPersistence.KEY_STORAGE);
+    let code: string = localStorage.getItem(this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_STORAGE));
     //check if the stored code is existing
     if (code == null) {
-      console.debug('No trace of an existing user was found.');
+      this.logger('decodeStoredKey', 'No trace of an existing user was found.');
       this.checkUserComplete.next(true);
     } else {
-      console.debug('A login code was found.');
-      console.debug('Initiating decoding sequence.');
+      this.logger('decodeStoredKey', 'A login code was found.');
+      this.logger('decodeStoredKey', 'Initiating decoding sequence.');
       //get the length of the code
       let codeLength: number = code.length;
       //get required information to decode the string
@@ -293,7 +457,7 @@ export class CoreService {
       //extract the key from the code and compare it with the key from the database
       let embeddedKey: string = code.substr(infoLength, key.length);
       if (embeddedKey === key) {
-        console.debug("The encoded information matched with the server's key.");
+        this.logger('decodeStoredKey', "The encoded information matched with the server's key.");
         //if the embedded key is the same as that provided by the server
         //execute the decoding process
         //start the process by removing the useless trailing characters
@@ -313,13 +477,13 @@ export class CoreService {
           username.push(encodedInfo.substr(pointer, 1))
         }
         let decodedUser: string = username.join('');
-        console.debug('User with id: ' + decodedUser + ' found.');
-        console.debug('Communicating with server for authentication.');
+        this.logger('decodeStoredKey', 'User with id: ' + decodedUser + ' found.');
+        this.logger('decodeStoredKey', 'Communicating with server for authentication.');
         this.fetchUserInfo(decodedUser);
       } else {
-        console.debug('The encoded information does not match with the key from the server.');
-        console.debug('Deleting residual data.');
-        localStorage.removeItem(LoginPersistence.KEY_STORAGE);
+        this.logger('decodeStoredKey', 'The encoded information does not match with the key from the server.');
+        this.logger('decodeStoredKey', 'Deleting any residual data.');
+        localStorage.removeItem(this.getSettingsValue(LoginPersistence.SETTING_GROUP, LoginPersistence.KEY_STORAGE));
         this.checkUserComplete.next(true);
       }
     }

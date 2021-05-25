@@ -1,4 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+
+import { ErrorCodes } from 'src/app/constants/properties';
+import { CoreService } from 'src/app/services/core/core.service';
+import { LoggerService } from 'src/app/services/logger/logger.service';
 import { LoginService } from 'src/app/services/login/login.service';
 import { NavService } from 'src/app/services/nav/nav.service';
 
@@ -8,14 +12,28 @@ import { NavService } from 'src/app/services/nav/nav.service';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
+  private className: string = 'DashboardComponent';
+  FATALERROR: boolean;
   isLoggedIn: boolean;
   isAdmin: boolean;
   username: string;
   active: number = 1;
 
-  constructor(private login: LoginService, private nav: NavService) { }
+  constructor(private login: LoginService, private nav: NavService,
+    private core: CoreService, private log: LoggerService) {
+
+  }
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
+    }
+  }
+
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.nav.setActiveTab(5);
     this.isLoggedIn = this.login.getLoginStatus();
     this.isAdmin = this.login.getAdminStatus();
@@ -31,5 +49,4 @@ export class DashboardComponent implements OnInit {
       this.username = this.login.getUsername();
     });
   }
-
 }

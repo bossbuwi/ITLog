@@ -1,30 +1,31 @@
 import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, Title } from '@angular/platform-browser';
 import { ReactiveFormsModule, FormsModule  } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AppRoutingModule } from './app-routing.module';
+import { formatDate } from '@angular/common';
 //import components
-import { AppComponent } from './app.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
-import { AnnouncementsComponent } from './components/announcements/announcements.component';
-import { GeneralWorkspaceComponent } from './components/general-workspace/general-workspace.component';
-import { MainCalendarComponent } from './components/main-calendar/main-calendar.component';
-import { ReservationComponent } from './components/reservation/reservation.component';
-import { ReportsComponent } from './components/reports/reports.component';
-import { AdminMenuComponent } from './components/dashboard/admin-menu/admin-menu.component';
-import { SystemMenuComponent } from './components/dashboard/system-menu/system-menu.component';
-import { RuleMenuComponent } from './components/dashboard/rule-menu/rule-menu.component';
-import { ConfigMenuComponent } from './components/dashboard/config-menu/config-menu.component';
+import { AppComponent } from 'src/app/app.component';
+import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
+import { AnnouncementsComponent } from 'src/app/components/announcements/announcements.component';
+import { GeneralWorkspaceComponent } from 'src/app/components/general-workspace/general-workspace.component';
+import { MainCalendarComponent } from 'src/app/components/main-calendar/main-calendar.component';
+import { ReservationComponent } from 'src/app/components/reservation/reservation.component';
+import { ReportsComponent } from 'src/app/components/reports/reports.component';
+import { AdminMenuComponent } from 'src/app/components/dashboard/admin-menu/admin-menu.component';
+import { SystemMenuComponent } from 'src/app/components/dashboard/system-menu/system-menu.component';
+import { RuleMenuComponent } from 'src/app/components/dashboard/rule-menu/rule-menu.component';
+import { ConfigMenuComponent } from 'src/app/components/dashboard/config-menu/config-menu.component';
+import { PageNotFoundComponent } from 'src/app/components/page-not-found/page-not-found.component';
+import { DashboardComponent } from 'src/app/components/dashboard/dashboard.component';
 //import services
-import { LoginService } from './services/login/login.service';
-import { LoggerService } from './services/logger/logger.service';
-import { CoreService } from './services/core/core.service';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { EventsService } from './services/events/events.service';
-import { NavService } from './services/nav/nav.service';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { DashboardService } from './services/dashboard/dashboard.service';
+import { LoginService } from 'src/app/services/login/login.service';
+import { LoggerService } from 'src/app/services/logger/logger.service';
+import { CoreService } from 'src/app/services/core/core.service';
+import { EventsService } from 'src/app/services/events/events.service';
+import { NavService } from 'src/app/services/nav/nav.service';
+import { DashboardService } from 'src/app/services/dashboard/dashboard.service';
 
 @NgModule({
   declarations: [
@@ -57,11 +58,12 @@ import { DashboardService } from './services/dashboard/dashboard.service';
       multi: true,
       deps: [ CoreService ]
     },
+    Title,
+    CoreService,
+    LoggerService,
     LoginService,
     NavService,
-    LoggerService,
     EventsService,
-    CoreService,
     DashboardService
   ],
   bootstrap: [AppComponent]
@@ -81,8 +83,16 @@ export class AppModule { }
  * @returns A promise.
  */
 export function initializeApp(coreService: CoreService) {
-  console.debug('Executing APP_INITIALIZER.');
-  console.debug('Calling CoreService.');
-  var promise: Promise<boolean> = coreService.startup();
+  logger('initializeApp', 'Executing APP_INITIALIZER.');
+  logger('initializeApp', 'Delegating startup to CoreService.');
+  let promise: Promise<boolean> = coreService.startup();
   return () => promise;
+}
+
+function logger(methodName: string, message: string):void {
+  let locale: string = 'en-US';
+  let date:string = formatDate(new Date, "yyyy-MMM-dd HH:mm:ss.SSS", locale);
+  let logEvent: string = '[' + date + '] ' + 'AppModule' + '.' + methodName + '(): ' +
+    message;
+  console.debug(logEvent);
 }

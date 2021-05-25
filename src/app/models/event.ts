@@ -1,6 +1,8 @@
 export class Event {
   _id: number;
   user: string;
+  createdBy: string;
+  lastModifiedBy: string;
   system: string;
   zone: string;
   type: string;

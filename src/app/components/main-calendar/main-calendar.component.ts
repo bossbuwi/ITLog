@@ -2,14 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {NgbDateStruct, NgbCalendar, NgbDate} from '@ng-bootstrap/ng-bootstrap';
 
-import { Event } from "../../models/event";
-import { ErrorCodes } from 'src/app/models/constants/properties';
+import { Event } from "src/app/models/event";
+import { ErrorCodes } from 'src/app/constants/properties';
 
-import { LoggerService } from "../../services/logger/logger.service";
-import { EventsService } from "../../services/events/events.service";
-import { LoginService } from "../../services/login/login.service";
-import { NavService } from "../../services/nav/nav.service";
-import { CoreService } from "../../services/core/core.service";
+import { LoggerService } from "src/app/services/logger/logger.service";
+import { EventsService } from "src/app/services/events/events.service";
+import { LoginService } from "src/app/services/login/login.service";
+import { NavService } from "src/app/services/nav/nav.service";
+import { CoreService } from "src/app/services/core/core.service";
 
 @Component({
   selector: 'app-main-calendar',
@@ -18,18 +18,20 @@ import { CoreService } from "../../services/core/core.service";
 })
 export class MainCalendarComponent implements OnInit {
   private className: string = 'MainCalendarComponent';
+  FATALERROR: boolean;
   isOnline: boolean; //flag to indicate if a user is logged in
   isAdmin: boolean; //flag to indicate if the user logged in is an admin
   hasEvents: boolean; //flag to indicate that the selected day has events
   events: Event[]; //object to hold the events for the day
   eventDetail: Event; //object to hold the selected event from the events table
   calendar: NgbDateStruct; //the calendar model used by the html template
-  FATALERROR: boolean;
 
-  constructor(private log: LoggerService,
-    private router: Router, private eventServ: EventsService,
-    private login:LoginService, private cal: NgbCalendar,
-    private nav: NavService, private core: CoreService) { }
+  constructor(private log: LoggerService, private router: Router,
+    private eventServ: EventsService, private login:LoginService,
+    private cal: NgbCalendar, private nav: NavService,
+    private core: CoreService) {
+
+  }
 
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
@@ -40,7 +42,7 @@ export class MainCalendarComponent implements OnInit {
   }
 
   private initializeComponent() {
-    this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     //sets the active tab to the calendar tab upon loading
     //for those users who bookmarked the url
     this.nav.setActiveTab(2);
@@ -58,7 +60,7 @@ export class MainCalendarComponent implements OnInit {
       this.isAdmin = this.login.getAdminStatus();
     });
     //create a date object that holds the current date
-    var today: Date = new Date();
+    let today: Date = new Date();
     //select the current date on the calendar
     this.selectToday();
     //call events service to fetch the events for the current day
@@ -93,7 +95,7 @@ export class MainCalendarComponent implements OnInit {
   onDateSelection(date: NgbDate): void {
     //create a new object of type Date and supply the object's parameters
     //from the received NgbDate object
-    var nDate: Date = new Date(date.year, date.month-1, date.day);
+    let nDate: Date = new Date(date.year, date.month-1, date.day);
     //call events service to get the method for the provided date
     // this.events = this.eventServ.getEventsForDay(nDate);
     this.eventServ.getEventsForTheDay(nDate);
@@ -117,8 +119,7 @@ export class MainCalendarComponent implements OnInit {
     //finds the event with the corresponding _id property
     //and saves it into the eventDetail object which would
     //then be referenced by the html template
-    this.eventDetail = this.events.find(x =>
-      x._id == parseInt(_id));
+    this.eventDetail = this.events.find(x => x._id == parseInt(_id));
   }
 
   createEvent(): void {

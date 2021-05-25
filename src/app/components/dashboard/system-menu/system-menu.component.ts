@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+
+import { ErrorCodes } from 'src/app/constants/properties';
 import { System } from 'src/app/models/system';
 import { CoreService } from 'src/app/services/core/core.service';
 import { DashboardService } from 'src/app/services/dashboard/dashboard.service';
+import { LoggerService } from 'src/app/services/logger/logger.service';
 
 @Component({
   selector: 'app-system-menu',
@@ -10,14 +13,25 @@ import { DashboardService } from 'src/app/services/dashboard/dashboard.service';
   styleUrls: ['./system-menu.component.css']
 })
 export class SystemMenuComponent implements OnInit {
+  private className: string = 'SystemMenuComponent';
+  FATALERROR: boolean;
   systemForm: FormGroup;
   systemArr: System[];
   updateComplete: boolean;
 
   constructor(private core: CoreService, private builder: FormBuilder,
-    private dashboard: DashboardService) { }
+    private dashboard: DashboardService, private log: LoggerService) { }
 
   ngOnInit(): void {
+    if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
+      this.FATALERROR = true;
+    } else {
+      this.initializeComponent();
+    }
+  }
+
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.systemForm = this.createForm();
     this.systemArr = [];
     this.core.fetchSystems();
@@ -28,7 +42,7 @@ export class SystemMenuComponent implements OnInit {
           this.addSystem(this.systemArr[item]);
         }
       }
-    })
+    });
     this.dashboard.subscribeSystemsUpdate().subscribe(status => {
       this.updateComplete = status;
     });
@@ -39,6 +53,7 @@ export class SystemMenuComponent implements OnInit {
   }
 
   private createForm(): FormGroup {
+    this.log.logVerbose(this.className, 'createForm', 'Creating form.');
     return this.builder.group({
       systems: this.builder.array([])
     });
@@ -58,7 +73,7 @@ export class SystemMenuComponent implements OnInit {
   }
 
   newSystem(system?: System): FormGroup {
-    var systemGroup: FormGroup;
+    let systemGroup: FormGroup;
     if (system !== undefined && Object.keys(system).length > 0) {
       systemGroup = this.builder.group({
         id: [system.id],
@@ -73,7 +88,7 @@ export class SystemMenuComponent implements OnInit {
         systemUrl: [system.systemUrl, Validators.required],
       });
     } else {
-      var newSystem: System = new System();
+      let newSystem: System = new System();
       systemGroup = this.builder.group({
         globalPrefix: [newSystem.globalPrefix, Validators.required],
         machine: [newSystem.machine, Validators.required],
@@ -86,11 +101,11 @@ export class SystemMenuComponent implements OnInit {
         systemUrl: [newSystem.systemUrl, Validators.required],
       });
     }
-
     return systemGroup;
   }
 
   onSubmit(): void {
+    this.log.logVerbose(this.className, 'onSubmit', 'Preparing form for submission.');
     for (let index in this.systems.controls) {
       this.systemArr[index] = this.systems.controls[index].value;
     }

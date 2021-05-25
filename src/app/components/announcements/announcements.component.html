@@ -10,14 +10,18 @@
                 {{systems[i].globalPrefix}} System
               </option>
             </select>
+            <span class="ml-2 sysver">Current Release:</span>
+            <span class="ml-2 release">
+              <div class="spinner-border text-secondary" role="status" *ngIf="selectedSystemVersion == 'false'"></div>{{selectedSystemVersion}}
+            </span>
           </li>
-          <li class="list-group-item" *ngIf="systems.length > 0">Global Prefix: {{selectedSystem.globalPrefix}}</li>
-          <li class="list-group-item" *ngIf="systems.length > 0">URL: <a href="{{selectedSystem.systemUrl}}">{{selectedSystem.systemUrl}}</a></li>
-          <li class="list-group-item" *ngIf="systems.length > 0">Machine: {{selectedSystem.machine}}</li>
-          <li class="list-group-item" *ngIf="systems.length > 0">Zone 1: {{selectedSystem.zone1Prefix}} - {{selectedSystem.zone1Name}}</li>
-          <li class="list-group-item" *ngIf="systems.length > 0">Zone 2: {{selectedSystem.zone2Prefix}} - {{selectedSystem.zone2Name}}</li>
-          <li class="list-group-item" *ngIf="systems.length > 0">Login: {{selectedSystem.loginNames}}</li>
-          <li class="list-group-item" *ngIf="systems.length > 0">System Admins: {{selectedSystem.systemAdmin}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Global Prefix:</span>{{selectedSystem.globalPrefix}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">URL:</span><a href="{{selectedSystem.systemUrl}}">{{selectedSystem.systemUrl}}</a></li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Machine:</span>{{selectedSystem.machine}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Zone 1:</span>{{selectedSystem.zone1Prefix}} - {{selectedSystem.zone1Name}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Zone 2:</span>{{selectedSystem.zone2Prefix}} - {{selectedSystem.zone2Name}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Login:</span>{{selectedSystem.loginNames}}</li>
+          <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">System Admins:</span>{{selectedSystem.systemAdmin}}</li>
         </ul>
       </div>
     </div>

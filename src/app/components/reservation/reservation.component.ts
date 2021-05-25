@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDate } from '@ng-bootstrap/ng-bootstrap';
 
-import { Event } from "../../models/event";
-import { System } from "../../models/system";
-import { EventTypes, EventTypesREST, FormMode, ErrorCodes } from "../../models/constants/properties";
+import { Event } from "src/app/models/event";
+import { System } from "src/app/models/system";
+import { EventType } from "src/app/models/eventtype";
+import { FormMode, ErrorCodes } from "src/app/constants/properties";
 
-import { EventsService } from "../../services/events/events.service";
-import { LoginService } from "../../services/login/login.service";
-import { LoggerService } from "../../services/logger/logger.service";
+import { EventsService } from "src/app/services/events/events.service";
+import { LoginService } from "src/app/services/login/login.service";
+import { LoggerService } from "src/app/services/logger/logger.service";
 import { CoreService } from 'src/app/services/core/core.service';
 import { NavService } from 'src/app/services/nav/nav.service';
 
@@ -19,6 +20,7 @@ import { NavService } from 'src/app/services/nav/nav.service';
 })
 export class ReservationComponent implements OnInit {
   private className: string = 'ReservationComponent';
+  FATALERROR: boolean;
   private username: string;
   eventModel: Event;
   systems: System[];
@@ -30,7 +32,8 @@ export class ReservationComponent implements OnInit {
   isUpgrade: boolean; //flag to signify that a system maintenance is being inserted
   isMaintenance: boolean;
   eventForm: FormGroup; //the event formgroup object
-  eventTypes: any[]; //array to hold the options for the event types select element
+  eventTypes: EventType[]; //array to hold the options for the event types select element
+  eventTypeNames: string[];
   isLoggedIn: boolean; //flag to indicate if user is logged in
   isAdmin: boolean; //flag to indicate if user is admin
   hasErrors: boolean; //flag to indicate that form has errors
@@ -41,18 +44,22 @@ export class ReservationComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.core.getStartUpStatus() == ErrorCodes.FATAL_ERROR) {
-
+      this.FATALERROR = true;
     } else {
       this.initializeComponent();
     }
   }
 
-  private initializeComponent() {
+  private initializeComponent(): void {
+    this.log.logVerbose(this.className, 'initializeComponent', 'Initializing ' + this.className + '.');
     this.nav.setActiveTab(3);
     this.systems = [];
     this.selectedSystem = new System();
     this.systems = this.core.getSystems();
     this.zones = [];
+    this.eventTypes = [];
+    this.eventTypes = this.core.getEventTypes();
+    this.eventTypeNames = [];
     //create a new event model where form values would be mapped
     this.eventModel = new Event();
     this.log.logVerbose(this.className, 'ngOnInit', 'Initiating ' + this.className + '.');
@@ -81,6 +88,11 @@ export class ReservationComponent implements OnInit {
       this.isLoggedIn = status;
       this.isAdmin = this.loginService.getAdminStatus();
       this.username = this.loginService.getUsername();
+      this.setFormMode(FormMode.FORM_INSERT);
+      this.isUpgrade = false;
+      this.isMaintenance = false;
+      //recreate form to purge previous data entered
+      this.eventForm = this.createEventForm();
       this.initializeForm();
     });
     //creates the actual form after all of the core dependencies are fetched
@@ -150,7 +162,7 @@ export class ReservationComponent implements OnInit {
   private initializeForm(): void {
     //this must be streamlined because it is messy and inefficient
     //change the event type select element's contents depending on user's rank
-    this.eventTypes = this.getEventTypes(this.isAdmin);
+    this.eventTypeNames = this.getEventTypes(this.isAdmin);
     //sets the default values for the fields if the form is in edit mode or confirm mode
     if (this.isEdit || this.isConfirm) {
       this.log.logVerbose(this.className, 'initializeForm', 'Mapping the event object into the form.');
@@ -216,19 +228,6 @@ export class ReservationComponent implements OnInit {
     }
   }
 
-  private setSystemMaintenace(maintenanceType?: string) {
-    if (maintenanceType == EventTypes.MAINTENANCE) {
-      this.isMaintenance = true;
-      this.isUpgrade = false;
-    } else if (maintenanceType == EventTypes.SYS_UPGRADE) {
-      this.isMaintenance = false;
-      this.isUpgrade = true;
-    } else {
-      this.isMaintenance = false;
-      this.isUpgrade = false;
-    }
-  }
-
   /**
    *
    */
@@ -239,7 +238,7 @@ export class ReservationComponent implements OnInit {
     //to accomodate both modes on a single method
     //create a variable that will hold the  result of the date checking
     //this must be done to ensure that the end date is not earlier than the start date
-    var compareResult: any = this.compareDates(this.eventForm.controls['startDate'].value, this.eventForm.controls['endDate'].value);
+    let compareResult: any = this.compareDates(this.eventForm.controls['startDate'].value, this.eventForm.controls['endDate'].value);
     //if start date is later than end date, send out an error and mark the form as invalid
     //also set the hasErrors flag to display any errors on the page
     if (compareResult ==  this.eventForm.controls['startDate'].value) {
@@ -320,23 +319,40 @@ export class ReservationComponent implements OnInit {
   }
 
   private onEventChange($event: any) {
-    if ($event == EventTypes.MAINTENANCE
-        || $event == EventTypes.SYS_UPGRADE) {
-      this.eventForm.controls['jiraCase'].disable();
-      this.eventForm.controls['featureOn'].disable();
-      this.eventForm.controls['featureOff'].disable();
-      this.eventForm.controls['compiledSources'].disable();
-      $event == EventTypes.MAINTENANCE ? this.setSystemMaintenace(EventTypes.MAINTENANCE) : this.setSystemMaintenace(EventTypes.SYS_UPGRADE);
-      this.eventForm.controls['apiUsed'].setValidators(Validators.required);
-      this.eventForm.controls['apiUsed'].updateValueAndValidity();
+    let eventType: EventType = this.eventTypes.find(x => x.name == $event);
+    if (eventType) {
+      if (eventType.maintenance || eventType.upgrade) {
+        this.eventForm.controls['jiraCase'].disable();
+        this.eventForm.controls['featureOn'].disable();
+        this.eventForm.controls['featureOff'].disable();
+        this.eventForm.controls['compiledSources'].disable();
+        this.setSystemMaintenace(eventType);
+        this.eventForm.controls['apiUsed'].setValidators(Validators.required);
+        this.eventForm.controls['apiUsed'].updateValueAndValidity();
+      } else {
+        this.eventForm.controls['jiraCase'].enable();
+        this.eventForm.controls['featureOn'].enable();
+        this.eventForm.controls['featureOff'].enable();
+        this.eventForm.controls['compiledSources'].enable();
+        this.setSystemMaintenace(eventType);
+        this.eventForm.controls['apiUsed'].clearValidators();
+        this.eventForm.controls['apiUsed'].updateValueAndValidity();
+      }
     } else {
-      this.eventForm.controls['jiraCase'].enable();
-      this.eventForm.controls['featureOn'].enable();
-      this.eventForm.controls['featureOff'].enable();
-      this.eventForm.controls['compiledSources'].enable();
-      this.setSystemMaintenace();
-      this.eventForm.controls['apiUsed'].clearValidators();
-      this.eventForm.controls['apiUsed'].updateValueAndValidity();
+      //the event's type is no longer on the database
+    }
+  }
+
+  private setSystemMaintenace(eventType: EventType) {
+    if (eventType.maintenance) {
+      this.isMaintenance = true;
+      this.isUpgrade = false;
+    } else if (eventType.upgrade) {
+      this.isMaintenance = false;
+      this.isUpgrade = true;
+    } else {
+      this.isMaintenance = false;
+      this.isUpgrade = false;
     }
   }
 
@@ -374,16 +390,18 @@ export class ReservationComponent implements OnInit {
    * @param adminStatus
    * @returns
    */
-  private getEventTypes(adminStatus: boolean): any[] {
-    var adminList: any[] = [EventTypes.IC, EventTypes.COB,
-      EventTypes.IC_COB, EventTypes.MAINTENANCE, EventTypes.SYS_UPGRADE];
-    var normalList: any[] = [EventTypes.IC, EventTypes.COB,
-      EventTypes.IC_COB];
-    if (adminStatus) {
-      return adminList;
-    } else {
-      return normalList;
-    }
+  private getEventTypes(adminStatus: boolean): string[] {
+    this.eventTypeNames = [];
+    this.eventTypes.forEach(element => {
+      if (adminStatus) {
+        this.eventTypeNames.push(element.name);
+      } else {
+        if (!element.restricted) {
+          this.eventTypeNames.push(element.name);
+        }
+      }
+    });
+    return this.eventTypeNames;
   }
 
   /**
@@ -391,21 +409,17 @@ export class ReservationComponent implements OnInit {
    * @param value
    * @returns
    */
-  private translateRESTValues(value: any): string {
-    switch (value) {
-      case EventTypesREST.IC:
-        return EventTypes.IC;
-      case EventTypesREST.COB:
-        return EventTypes.COB;
-      case EventTypesREST.IC_COB:
-        return EventTypes.IC_COB;
-      case EventTypesREST.MAINTENANCE:
-        return EventTypes.MAINTENANCE;
-      case EventTypesREST.SYS_UPGRADE:
-        return EventTypes.SYS_UPGRADE;
-      default:
-        return EventTypes.IC;
+  private translateRESTValues(value: string): string {
+    let eventName: string;
+    let eventType: EventType;
+    eventType = this.eventTypes.find(x => x.eventCode == value);
+    if (eventType) {
+      eventName = eventType.name;
+    } else {
+      eventName = '';
     }
+
+    return eventName;
   }
 
   //sample custom validator

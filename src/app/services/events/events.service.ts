@@ -1,30 +1,30 @@
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
-import { Observable, Subject, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
 
-import { CoreService } from "../core/core.service";
-import { LoggerService } from "../logger/logger.service";
+import { CoreService } from "src/app/services/core/core.service";
+import { LoggerService } from "src/app/services/logger/logger.service";
 
-import { Event } from "../../models/event";
-import { Query } from "../../models/query";
-import { RestUrls, ErrorCodes, EventTypes, EventTypesREST } from "../../models/constants/properties";
+import { Event } from "src/app/models/event";
+import { Query } from "src/app/models/query";
+import { RestUrls } from "src/app/constants/usersettings";
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventsService {
   private className: string = 'EventsService';
-
   private eventInsertSuccess: Subject<Event>; //subject to broadcast if event insert is finished
   private eventFetchedForEdit: Subject<Event>; //subject to broadcast if event insert is finished
   private eventEditSuccess: Subject<Event>; //subject to broadcast if event insert is finished
   private eventResults: Subject<Event[]>; //subject to broadcast the query results from the server
   private eventsForTheDay: Subject<Event[]>; //subject to broadcast the events for the selected day
+  private systemVersionFetched: Subject<string>;
 
-  constructor(private http: HttpClient, private log: LoggerService, private configService: CoreService) {
+  constructor(private http: HttpClient, private log: LoggerService,
+    private core: CoreService) {
     this.initializeService();
   }
 
@@ -33,13 +33,13 @@ export class EventsService {
    * subscribers are listening to.
    */
   private initializeService(): void {
-    this.log.logVerbose(this.className, 'initializeService', 'Initiating ' + this.className + '.');
-    this.log.logVerbose(this.className, 'initializeService', 'Initiating subjects.');
+    this.log.logVerbose(this.className, 'initializeService', 'Initializing ' + this.className +'.');
     this.eventInsertSuccess = new Subject<Event>();
     this.eventFetchedForEdit = new Subject<Event>();
     this.eventEditSuccess = new Subject<Event>();
     this.eventResults = new Subject<Event[]>();
     this.eventsForTheDay = new Subject<Event[]>();
+    this.systemVersionFetched = new Subject<string>();
   }
 
   /**
@@ -47,7 +47,6 @@ export class EventsService {
    * @returns
    */
   subscribeInsertEventCompletion(): Observable<Event> {
-    this.log.logVerbose(this.className, 'subscribeInsertEventCompletion', 'A new subscriber is detected.');
     return this.eventInsertSuccess.asObservable();
   }
 
@@ -56,7 +55,6 @@ export class EventsService {
    * @returns
    */
   subscribeEditEventCompletion(): Observable<Event> {
-    this.log.logVerbose(this.className, 'subscribeEditEventCompletion', 'A new subscriber is detected.');
     return this.eventEditSuccess.asObservable();
   }
 
@@ -65,7 +63,6 @@ export class EventsService {
    * @returns
    */
   subscribeGetEventEditCompletion(): Observable<Event> {
-    this.log.logVerbose(this.className, 'subscribeGetEventEditCompletion', 'A new subscriber is detected.');
     return this.eventFetchedForEdit.asObservable();
   }
 
@@ -74,7 +71,6 @@ export class EventsService {
    * @returns
    */
   subscribeGetEventResults(): Observable<Event[]> {
-    this.log.logVerbose(this.className, 'subscribeGetEventResults', 'A new subscriber is detected.');
     return this.eventResults.asObservable();
   }
 
@@ -83,8 +79,11 @@ export class EventsService {
    * @returns
    */
   subscribeEventsForTheDay(): Observable<Event[]> {
-    this.log.logVerbose(this.className, 'subscribeEventsForTheDay', 'A new subscriber is detected.');
     return this.eventsForTheDay.asObservable();
+  }
+
+  subscribesystemVersionFetched(): Observable<string> {
+    return this.systemVersionFetched.asObservable();
   }
 
   /**
@@ -92,11 +91,11 @@ export class EventsService {
    * @param date
    */
   getEventsForTheDay(date: Date): void {
-    var pipe: DatePipe = new DatePipe('en-US');
-    var fDate: string = pipe.transform(date, 'yyyy-MM-dd');
+    let pipe: DatePipe = new DatePipe('en-US');
+    let fDate: string = pipe.transform(date, 'yyyy-MM-dd');
     const params: HttpParams = new HttpParams()
-      .set('selectedDay', fDate)
-      this.http.get<Event[]>(RestUrls.REST_GET_EVENT, { params: params }).subscribe(
+      .set('selectedDay', fDate);
+      this.http.get<Event[]>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_EVENT), { params: params }).subscribe(
         data => {
           if (Object.keys(data).length > 0) {
             this.eventsForTheDay.next(data)
@@ -119,7 +118,7 @@ export class EventsService {
     //create a new event object
     //this would be sent to the REST server as a parameter
     this.log.logVerbose(this.className, 'submitEvent', 'Creating a new event object.');
-    var event = new Event();
+    let event = new Event();
     //copy the value of the form's fields into the new event object
     this.log.logVerbose(this.className, 'submitEvent', "Translating the form's values into the event object's properties.");
     event = form.value;
@@ -130,7 +129,7 @@ export class EventsService {
     this.log.logVerbose(this.className, 'submitEvent', event);
     this.log.logVerbose(this.className, 'submitEvent', 'Connecting to the REST server.');
     //send the event object to the REST server
-    this.http.post<Event>(RestUrls.REST_POST_EVENT, { params: event }).subscribe(
+    this.http.post<Event>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_POST_EVENT), {event}).subscribe(
       data => {
         //based on the REST server's specs, the server would reply with the object inserted
         //check if the reply contains an object
@@ -160,11 +159,11 @@ export class EventsService {
   fetchEvent(id: string): void {
     const params: HttpParams = new HttpParams()
       .set('_id', id);
-    this.http.get<Event>(RestUrls.REST_GET_EVENT, {params: params}).subscribe(
+    this.http.get<Event>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_EVENT), {params: params}).subscribe(
       data => {
-        var evnt = new Event();
-        evnt = data;
-        this.eventFetchedForEdit.next(evnt);
+        let event = new Event();
+        event = data;
+        this.eventFetchedForEdit.next(event);
       }, error => {
         console.log(error);
       }, () => {
@@ -181,17 +180,17 @@ export class EventsService {
   editEvent(form: FormGroup, id: number): void {
     this.log.logVerbose(this.className, 'editEvent', 'Trying to get event with id: ' + id + ' from REST server.');
     this.log.logVerbose(this.className, 'editEvent', 'Setting parameters for http request.');
-    var evnt = new Event();
-    evnt = form.value;
-    evnt._id = id;
-    evnt.type = this.translateFormValues(form.controls['type'].value);
-    evnt.startDate = this.getStringDate(form.controls['startDate'].value);
-    evnt.endDate = this.getStringDate(form.controls['endDate'].value);
-    this.http.put<Event>(RestUrls.REST_POST_EVENT, { params: evnt }).subscribe(
+    let event = new Event();
+    event = form.value;
+    event._id = id;
+    event.type = this.translateFormValues(form.controls['type'].value);
+    event.startDate = this.getStringDate(form.controls['startDate'].value);
+    event.endDate = this.getStringDate(form.controls['endDate'].value);
+    this.http.put<Event>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_POST_EVENT), {event}).subscribe(
       data => {
-        var evnt: Event = new Event();
-        evnt = data;
-        this.eventEditSuccess.next(evnt);
+        let event: Event = new Event();
+        event = data;
+        this.eventEditSuccess.next(event);
       }, error => {
         console.log(error);
       }, () => {
@@ -205,7 +204,7 @@ export class EventsService {
    * @param form
    */
   requestReport(form: FormGroup): void {
-    var query: Query = new Query();
+    let query: Query = new Query();
     query = form.value;
     if (form.controls['startDate'].valid) {
       query.startDate = this.getStringDate(form.controls['startDate'].value);
@@ -225,8 +224,8 @@ export class EventsService {
     if (form.controls['zone'].value == '') {
       query.zone = 'All';
     }
-    if (form.controls['cursysver'].value == '') {
-      query.cursysver = false;
+    if (form.controls['curSysVer'].value == '') {
+      query.curSysVer = false;
     }
     if (form.controls['requestReport'].value == '') {
       query.requestReport = false;
@@ -236,11 +235,21 @@ export class EventsService {
       params = params.append(key, query[key]);
     });
     if (query.requestReport) {
-      this.http.get(RestUrls.REST_GENERATE_REPORT, {params: params, responseType: 'blob'}).subscribe(
-        data => {
-          var file: Blob = new Blob([data],{ type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-          const dataFile = window.URL.createObjectURL(file);
-          window.open(dataFile);
+      this.http.get<Blob>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GENERATE_REPORT), {observe: 'response', params: params, responseType: 'blob' as 'json'}).subscribe(
+        (data: HttpResponse<Blob>) => {
+          let filename = 'file.xlsx';
+          let headers = data.headers.get('Content-Disposition');
+          const regex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = regex.exec(headers);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+          let file: Blob = new Blob([data.body],{ type: data.headers.get('Content-Type') });
+          let downloadLink = document.createElement('a');
+          downloadLink.href = window.URL.createObjectURL(file);
+          downloadLink.setAttribute('download', filename);
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
         }, error => {
           console.log(error);
         }, () => {
@@ -248,7 +257,7 @@ export class EventsService {
         }
       );
     } else {
-      this.http.get<Event[]>(RestUrls.REST_GENERATE_REPORT, {params: params}).subscribe(
+      this.http.get<Event[]>(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GENERATE_REPORT), {params: params}).subscribe(
         data => {
           this.eventResults.next(data);
         }, error => {
@@ -260,14 +269,36 @@ export class EventsService {
     }
   }
 
+  getSystemVersion(globalPrefix: string) {
+    this.systemVersionFetched.next('false');
+    let params = new HttpParams()
+      .set('globalPrefix', globalPrefix);
+    this.http.get(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_SYSTEM_VERSION), { observe: 'response', params }).subscribe(
+      (data: HttpResponse<Event>) => {
+        if (data)
+        this.systemVersionFetched.next(data.body.apiUsed);
+      }, error => {
+        if (error.status == 404) {
+          this.log.logError(this.className, 'getSystemVersion', 'System version not found.');
+          this.systemVersionFetched.next('Not provided.');
+        } else {
+          this.log.logError(this.className, 'getSystemVersion', 'Server replied with errors.');
+          this.log.logError(this.className, 'getSystemVersion', error);
+        }
+      }, () => {
+
+      }
+    );
+  }
+
   /**
    *
    * @param datepicker
    * @returns
    */
   private getStringDate(datepicker: any): string {
-    var pipe: DatePipe = new DatePipe('en-US');
-    var wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
+    let pipe: DatePipe = new DatePipe('en-US');
+    let wDate: Date = new Date(datepicker.year, datepicker.month-1, datepicker.day);
     return pipe.transform(wDate, 'yyyy-MM-dd');
   }
 
@@ -277,19 +308,9 @@ export class EventsService {
    * @returns
    */
   private translateFormValues(value: string): string {
-    switch (value) {
-      case EventTypes.IC:
-        return EventTypesREST.IC
-      case EventTypes.COB:
-        return EventTypesREST.COB;
-      case EventTypes.IC_COB:
-        return EventTypesREST.IC_COB;
-      case EventTypes.MAINTENANCE:
-        return EventTypesREST.MAINTENANCE;
-      case EventTypes.SYS_UPGRADE:
-        return EventTypesREST.SYS_UPGRADE;
-      default:
-        return EventTypesREST.IC;
+    let eventType = this.core.getEventTypes().find(x => x.name == value);
+    if (eventType) {
+      return eventType.eventCode;
     }
   }
 }

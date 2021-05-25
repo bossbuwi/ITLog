@@ -41,12 +41,9 @@
             <div class="form-group col">
               <label class="form-label">Event Type</label>
               <select class="custom-select" formControlName="type">
-                <option>All</option>
-                <option>Input Cycle</option>
-                <option>Close of Business</option>
-                <option>Input Cycle -> Close of Business</option>
-                <option>Maintenance</option>
-                <option>System Upgrade</option>
+                <option *ngFor="let eventTypeName of eventTypeNames; let i = index" [value]="eventTypeNames[i]">
+                  {{eventTypeNames[i]}}
+                </option>
               </select>
             </div>
             <div class="form-group col">
@@ -71,8 +68,8 @@
           <div class="form-row">
             <div class="form-group">
               <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="cursysver" formControlName="cursysver" (change)="onCheckboxChange()">
-                <label class="form-check-label" for="cursysver">Current System Version</label>
+                <input class="form-check-input" type="checkbox" id="curSysVer" formControlName="curSysVer" (change)="onCheckboxChange()">
+                <label class="form-check-label" for="curSysVer">Current System Version</label>
               </div>
             </div>
           </div>
