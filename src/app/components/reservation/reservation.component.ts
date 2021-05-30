@@ -182,10 +182,7 @@ export class ReservationComponent implements OnInit {
       this.eventForm.controls['apiUsed'].setValue(this.eventModel.apiUsed);
       this.eventForm.controls['compiledSources'].setValue(this.eventModel.compiledSources);
     }
-    //disables the start date field if the form is in edit mode
-    if (this.isEdit) {
-      this.eventForm.controls['startDate'].disable();
-    } else if (this.isConfirm) {
+    if (this.isConfirm) {
       //else if form is in confirm mode, disable it fully
       this.eventForm.disable();
     } else if (this.isInsert) {

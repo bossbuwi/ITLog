@@ -5,6 +5,7 @@ export class ConfigNames {
   public static CONF_DISPLAY_AUTHOR: string = 'displayauthor';
   public static CONF_NAVTAB_DESIGN: string = 'navtabsdesign';
   public static CONF_OPEN_REPORTS: string = 'openreports';
+  public static CONF_OPEN_EVENT_HIST: string = 'openeventhistory';
 }
 
 export class ErrorCodes {
@@ -26,6 +27,11 @@ export class FormMode {
   public static FORM_INSERT: string = 'insert';
   public static FORM_EDIT: string = 'edit';
   public static FORM_CONFIRM: string = 'confirm';
+}
+
+export class CalendarMode {
+  public static CALENDAR_VIEW: string = 'view';
+  public static CALENDAR_HISTORY: string = 'history';
 }
 
 export class SettingsFiles {

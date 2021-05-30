@@ -12,7 +12,7 @@
             </select>
             <span class="ml-2 sysver">Current Release:</span>
             <span class="ml-2 release">
-              <div class="spinner-border text-secondary" role="status" *ngIf="selectedSystemVersion == 'false'"></div>{{selectedSystemVersion}}
+              <div class="spinner-border text-secondary" role="status" *ngIf="selectedSystemVersion == 'false'"></div><span *ngIf="selectedSystemVersion !== 'false'">{{selectedSystemVersion}}</span>
             </span>
           </li>
           <li class="list-group-item" *ngIf="systems.length > 0"><span class="info mr-2">Global Prefix:</span>{{selectedSystem.globalPrefix}}</li>

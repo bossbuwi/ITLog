@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import {NgbDateStruct, NgbCalendar, NgbDate} from '@ng-bootstrap/ng-bootstrap';
+import {NgbDateStruct, NgbCalendar, NgbDate, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 
 import { Event } from "src/app/models/event";
-import { ErrorCodes } from 'src/app/constants/properties';
+import { ConfigNames, ErrorCodes } from 'src/app/constants/properties';
 
 import { LoggerService } from "src/app/services/logger/logger.service";
 import { EventsService } from "src/app/services/events/events.service";
@@ -25,11 +25,16 @@ export class MainCalendarComponent implements OnInit {
   events: Event[]; //object to hold the events for the day
   eventDetail: Event; //object to hold the selected event from the events table
   calendar: NgbDateStruct; //the calendar model used by the html template
+  history: Event[];
+  hasHistory: boolean;
+  calendarView: boolean;
+  calendarHistory: boolean;
+  openEventHistory: boolean;
 
   constructor(private log: LoggerService, private router: Router,
     private eventServ: EventsService, private login:LoginService,
     private cal: NgbCalendar, private nav: NavService,
-    private core: CoreService) {
+    private core: CoreService, private modalPopUp: NgbModal) {
 
   }
 
@@ -50,6 +55,9 @@ export class MainCalendarComponent implements OnInit {
     this.events = [];
     //initiate the event detail object
     this.eventDetail = new Event();
+    this.history = [];
+    this.calendarView = true;
+    this.calendarHistory = false;
     //gets the current online and admin status of the user
     this.isOnline = this.login.getLoginStatus();
     this.isAdmin = this.login.getAdminStatus();
@@ -84,6 +92,19 @@ export class MainCalendarComponent implements OnInit {
         this.hasEvents = false;
       }
     });
+    this.eventServ.subscribeEventHistoryFetched().subscribe(history => {
+      if (history.length > 0) {
+        this.history = history;
+        this.hasHistory = true;
+      } else {
+        this.hasHistory = false;
+      }
+    });
+    if (this.core.getConfigValue(ConfigNames.CONF_OPEN_EVENT_HIST) == 'Y') {
+      this.openEventHistory = true;
+    } else {
+      this.openEventHistory = false;
+    }
   }
 
   /**
@@ -151,4 +172,16 @@ export class MainCalendarComponent implements OnInit {
    * @param id The _id property of the event to be deleted.
    */
   deleteEvent(id: string): void { }
+
+  eventHistory(id: string): void {
+    this.calendarView = false;
+    this.calendarHistory = true;
+    this.history = [];
+    this.eventServ.getEventHistory(id);
+  }
+
+  closeHistory(): void {
+    this.calendarView = true;
+    this.calendarHistory = false;
+  }
 }

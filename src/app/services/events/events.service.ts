@@ -22,6 +22,7 @@ export class EventsService {
   private eventResults: Subject<Event[]>; //subject to broadcast the query results from the server
   private eventsForTheDay: Subject<Event[]>; //subject to broadcast the events for the selected day
   private systemVersionFetched: Subject<string>;
+  private eventHistoryFetched: Subject<Event[]>;
 
   constructor(private http: HttpClient, private log: LoggerService,
     private core: CoreService) {
@@ -40,6 +41,7 @@ export class EventsService {
     this.eventResults = new Subject<Event[]>();
     this.eventsForTheDay = new Subject<Event[]>();
     this.systemVersionFetched = new Subject<string>();
+    this.eventHistoryFetched = new Subject<Event[]>();
   }
 
   /**
@@ -84,6 +86,10 @@ export class EventsService {
 
   subscribesystemVersionFetched(): Observable<string> {
     return this.systemVersionFetched.asObservable();
+  }
+
+  subscribeEventHistoryFetched(): Observable<Event[]> {
+    return this.eventHistoryFetched.asObservable();
   }
 
   /**
@@ -275,8 +281,11 @@ export class EventsService {
       .set('globalPrefix', globalPrefix);
     this.http.get(this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_SYSTEM_VERSION), { observe: 'response', params }).subscribe(
       (data: HttpResponse<Event>) => {
-        if (data)
-        this.systemVersionFetched.next(data.body.apiUsed);
+        if (data) {
+          this.systemVersionFetched.next(data.body.apiUsed);
+        } else {
+          this.systemVersionFetched.next('Error!');
+        }
       }, error => {
         if (error.status == 404) {
           this.log.logError(this.className, 'getSystemVersion', 'System version not found.');
@@ -284,11 +293,25 @@ export class EventsService {
         } else {
           this.log.logError(this.className, 'getSystemVersion', 'Server replied with errors.');
           this.log.logError(this.className, 'getSystemVersion', error);
+          this.systemVersionFetched.next('Error!');
         }
       }, () => {
 
       }
     );
+  }
+
+  getEventHistory(id: string) {
+    const url: string = this.core.getSettingsValue(RestUrls.SETTING_GROUP, RestUrls.REST_GET_EVENT_HISTORY) + '/' + id;
+    this.http.get<Event[]>(url).subscribe(data => {
+      if (data) {
+        this.eventHistoryFetched.next(data);
+      }
+    }, error => {
+
+    }, () => {
+
+    });
   }
 
   /**

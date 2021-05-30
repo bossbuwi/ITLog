@@ -13,4 +13,5 @@ export class Event {
   featureOn: string;
   featureOff: string;
   jiraCase: string;
+  status: string;
 }

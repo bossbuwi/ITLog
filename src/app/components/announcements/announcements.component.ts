@@ -45,15 +45,11 @@ export class AnnouncementsComponent implements OnInit {
     this.systems = this.core.getSystems();
     this.rules = this.core.getRules();
     this.selectedSystem = this.systems[0];
-    this.selectedSystemVersion = '';
+    this.selectedSystemVersion = 'false';
     this.event.getSystemVersion(this.selectedSystem.globalPrefix);
-    this.event.subscribesystemVersionFetched().subscribe(
-      data => {
-        if (data !== 'false') {
-          this.selectedSystemVersion = data;
-        }
-      }
-    );
+    this.event.subscribesystemVersionFetched().subscribe(data => {
+      this.selectedSystemVersion = data;
+    });
     this.log.logVerbose(this.className, 'initializeComponent', 'Initialization completed.');
   }
 

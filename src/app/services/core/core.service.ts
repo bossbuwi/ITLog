@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject, Subscription } from 'rxjs';
 
 import { SettingsFiles, ConfigNames, ErrorCodes } from "src/app/constants/properties";
-import { LoginPersistence, RestUrls} from "src/app/constants/usersettings";
+import { LoginPersistence, RestUrls, WebProperties } from "src/app/constants/usersettings";
 import { Configuration } from "src/app/models/configuration";
 import { System } from "src/app/models/system";
 import { Rule } from "src/app/models/rule";
@@ -30,6 +30,7 @@ export class CoreService {
   private fetchEventTypesComplete: Subject<boolean>;
   private checkUserComplete: Subject<boolean>;
   private readUserSettingsComplete: Subject<boolean>;
+  private inspectUserSettingsComplete: Subject<boolean>;
 
   constructor(private http: HttpClient) {
     this.initializeService();
@@ -53,6 +54,7 @@ export class CoreService {
     this.fetchEventTypesComplete = new Subject<boolean>();
     this.checkUserComplete = new Subject<boolean>();
     this.readUserSettingsComplete = new Subject<boolean>();
+    this.inspectUserSettingsComplete = new Subject<boolean>();
     this.logger('initializeService', 'CoreService has no access to LoggerService to avoid circular dependencies.');
     this.logger('initializeService', 'CoreService will use default logging and will bypass any logging level set.');
   }
@@ -111,6 +113,10 @@ export class CoreService {
     this.readUserSettings();
     let setting: Subscription = this.readUserSettingsComplete.subscribe(status => {
       if (status)
+      this.inspectUserSettings();
+    });
+    let inspectSetting: Subscription = this.inspectUserSettingsComplete.subscribe(status => {
+      if (status)
       this.fetchConfigs();
     });
     let config: Subscription = this.fetchConfigsComplete.subscribe(status => {
@@ -141,6 +147,7 @@ export class CoreService {
       this.logger('fetchDataFromServer', 'Deleting subscriptions.');
       if (status == 0) {
         setting.unsubscribe();
+        inspectSetting.unsubscribe();
         config.unsubscribe();
         system.unsubscribe();
         rules.unsubscribe();
@@ -154,19 +161,34 @@ export class CoreService {
     this.logger('readUserSettings', 'Searching for the user configured JSON file.');
     this.http.get<Setting[]>(SettingsFiles.JSON_DATA).subscribe(data => {
       if (data.length > 0) {
-        this.logger('readUserSettings', 'JSON file found.');
-        this.logger('readUserSettings', 'Reading the user defined settings.');
+        this.logger('readUserSettings', 'JSON file found on assets directory.');
         this.userSettings = data;
       }
     }, error => {
       this.logger('readUserSettings', 'There is an error reading the user defined settings.');
-      this.logger('readUserSettings', 'The JSON file may be corrupted or missing.');
+      this.logger('readUserSettings', 'The JSON file is not found on the assets directory.');
       console.log(error);
-      this.startupError = 'User settings file is either missing or corrupted.';
+      this.startupError = 'User settings file not found on the assets directory.';
       this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
     }, () => {
       this.readUserSettingsComplete.next(true);
     })
+  }
+
+  inspectUserSettings(): void {
+    this.logger('inspectUserSettings', 'Checking the user defined JSON file.');
+    let restUrls = this.inspectSettingGroup(RestUrls.SETTING_GROUP, RestUrls.CHILD_NAMES);
+    let loginPersistence = this.inspectSettingGroup(LoginPersistence.SETTING_GROUP, LoginPersistence.CHILD_NAMES);
+    let webproperties = this.inspectSettingGroup(WebProperties.SETTING_GROUP, WebProperties.CHILD_NAMES);
+    if (!restUrls || !loginPersistence || !webproperties) {
+      this.logger('inspectUserSettings', 'The JSON file may be corrupted or missing some key-value pairs.');
+      this.startupError = 'User settings file may be corrupted.';
+      this.startUpComplete.next(ErrorCodes.FATAL_ERROR);
+    } else {
+      this.logger('inspectUserSettings', 'The JSON file has been inspected.');
+      this.logger('inspectUserSettings', 'All expected key-value pairs found.');
+      this.inspectUserSettingsComplete.next(true);
+    }
   }
 
   /**
@@ -392,6 +414,10 @@ export class CoreService {
     return this.readUserSettingsComplete.asObservable();
   }
 
+  subscribeInspectUserSettingsComplete(): Observable<boolean> {
+    return this.inspectUserSettingsComplete.asObservable();
+  }
+
   /**
    *
    * @param username
@@ -487,5 +513,20 @@ export class CoreService {
         this.checkUserComplete.next(true);
       }
     }
+  }
+
+  private inspectSettingGroup(groupName: string, groupContent: string[]): boolean {
+    for (let i = 0; i < groupContent.length; i++) {
+      try {
+        let value = this.userSettings.find(x => x.groupName == groupName).details[groupContent[i]];
+        if (value == undefined || value == null || value == '') {
+          return false;
+        }
+      } catch (error) {
+        console.log(error);
+        return false;
+      }
+    }
+    return true;
   }
 }

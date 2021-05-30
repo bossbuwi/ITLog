@@ -1,132 +1,180 @@
 <div class="container-fluid" *ngIf="!FATALERROR">
-  <!-- Row 1
+  <div *ngIf="calendarView">
+    <!-- Row 1
     -- This is the main row for all of the items -->
-  <div class="row">
-    <!-- Row 1, Column 1
-      -- This is the column for the calendar -->
-    <div class="col">
-      <!-- Row 1, Column 1, Row 1-->
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-5">
-            <ul class="list-group-flush">
-              <li class="list-group-item"><small class="reminder">Please go to the Events tab if you want to log an event.</small></li>
-              <li class="list-group-item"><small class="reminder">Click a date on the calendar to display the events for that day.</small></li>
-              <li class="list-group-item"><small class="reminder">Click an event (if there are any) on the table to right of the calendar to display its details.</small></li>
-            </ul>
+    <div class="row">
+      <!-- Row 1, Column 1
+        -- This is the column for the calendar -->
+      <div class="col">
+        <!-- Row 1, Column 1, Row 1-->
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-5">
+              <ul class="list-group-flush">
+                <li class="list-group-item"><small class="reminder">Please go to the Events tab if you want to log an event.</small></li>
+                <li class="list-group-item"><small class="reminder">Click a date on the calendar to display the events for that day.</small></li>
+                <li class="list-group-item"><small class="reminder">Click an event (if there are any) on the table to right of the calendar to display its details
+                  <span *ngIf="!isAdmin && !openEventHistory"> or edit it.</span><span *ngIf="isAdmin || openEventHistory">, edit it or view its history.</span></small></li>
+              </ul>
+            </div>
+            <div class="col">
+              <ngb-datepicker #picker [(ngModel)]="calendar" (dateSelect)="onDateSelection($event)" outsideDays="hidden"></ngb-datepicker>
+            </div>
           </div>
-          <div class="col">
-            <ngb-datepicker #picker [(ngModel)]="calendar" (dateSelect)="onDateSelection($event)" outsideDays="hidden"></ngb-datepicker>
+          <!-- End of Row 1, Column 1, Row 1-->
+          <!-- Row 1, Column 1, Row 2-->
+          <div class="row">
+            <div class="col-12">
+              <form *ngIf="hasEvents">
+                <div class="form-row">
+                  <div class="form-group col">
+                    <label for="username">Username</label>
+                    <input type="text" [ngModel]="eventDetail.user" class="form-control form-control-sm" id="username" name="username" disabled>
+                  </div>
+                  <div class="form-group col">
+                    <label for="zone">Zone</label>
+                    <input type="text" [ngModel]="eventDetail.zone" class="form-control form-control-sm" id="zone" name="zone" disabled>
+                  </div>
+                  <div class="form-group col">
+                    <label for="eventtype">Event Type</label>
+                    <input type="text" [ngModel]="eventDetail.type" class="form-control form-control-sm" id="eventtype" name="eventtype" disabled>
+                  </div>
+                  <div class="form-group col">
+                    <label for="jiracase">JIRA Case</label>
+                    <input type="text" [ngModel]="eventDetail.jiraCase" class="form-control form-control-sm" id="jiracase" name="jiracase" disabled>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-3">
+                    <label for="startdate">Start Date</label>
+                    <input type="text" [ngModel]="eventDetail.startDate" class="form-control form-control-sm" id="startdate" name="startdate" disabled>
+                  </div>
+                  <div class="form-group col-3">
+                    <label for="enddate">End Date</label>
+                    <input type="text" [ngModel]="eventDetail.endDate" class="form-control form-control-sm" id="enddate" name="enddate" disabled>
+                  </div>
+                  <div class="form-group col-6">
+                    <label for="apiused">APIs Used</label>
+                    <input type="text" [ngModel]="eventDetail.apiUsed" class="form-control form-control-sm" id="apiused" name="apiused" disabled>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label for="featureon">Features turned ON</label>
+                    <input type="text" [ngModel]="eventDetail.featureOn" class="form-control form-control-sm" id="featureon" name="featureon" disabled>
+                  </div>
+                  <div class="form-group col-6">
+                    <label for="featureoff">Features turned OFF</label>
+                    <input type="text" [ngModel]="eventDetail.featureOff" class="form-control form-control-sm" id="featureoff" name="featureoff" disabled>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col">
+                    <label for="featureon">Compiled Sources</label>
+                    <input type="text" [ngModel]="eventDetail.compiledSources" class="form-control form-control-sm" id="compiledSources" name="compiledSources" disabled>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
+          <!-- End of Row 1, Column 1, Row 2-->
         </div>
-        <!-- End of Row 1, Column 1, Row 1-->
-        <!-- Row 1, Column 1, Row 2-->
-        <div class="row">
-          <div class="col-12">
-            <form *ngIf="hasEvents">
-              <div class="form-row">
-                <div class="form-group col">
-                  <label for="username">Username</label>
-                  <input type="text" [ngModel]="eventDetail.user" class="form-control form-control-sm" id="username" name="username" disabled>
-                </div>
-                <div class="form-group col">
-                  <label for="zone">Zone</label>
-                  <input type="text" [ngModel]="eventDetail.zone" class="form-control form-control-sm" id="zone" name="zone" disabled>
-                </div>
-                <div class="form-group col">
-                  <label for="eventtype">Event Type</label>
-                  <input type="text" [ngModel]="eventDetail.type" class="form-control form-control-sm" id="eventtype" name="eventtype" disabled>
-                </div>
-                <div class="form-group col">
-                  <label for="jiracase">JIRA Case</label>
-                  <input type="text" [ngModel]="eventDetail.jiraCase" class="form-control form-control-sm" id="jiracase" name="jiracase" disabled>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-3">
-                  <label for="startdate">Start Date</label>
-                  <input type="text" [ngModel]="eventDetail.startDate" class="form-control form-control-sm" id="startdate" name="startdate" disabled>
-                </div>
-                <div class="form-group col-3">
-                  <label for="enddate">End Date</label>
-                  <input type="text" [ngModel]="eventDetail.endDate" class="form-control form-control-sm" id="enddate" name="enddate" disabled>
-                </div>
-                <div class="form-group col-6">
-                  <label for="apiused">APIs Used</label>
-                  <input type="text" [ngModel]="eventDetail.apiUsed" class="form-control form-control-sm" id="apiused" name="apiused" disabled>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-6">
-                  <label for="featureon">Features turned ON</label>
-                  <input type="text" [ngModel]="eventDetail.featureOn" class="form-control form-control-sm" id="featureon" name="featureon" disabled>
-                </div>
-                <div class="form-group col-6">
-                  <label for="featureoff">Features turned OFF</label>
-                  <input type="text" [ngModel]="eventDetail.featureOff" class="form-control form-control-sm" id="featureoff" name="featureoff" disabled>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col">
-                  <label for="featureon">Compiled Sources</label>
-                  <input type="text" [ngModel]="eventDetail.compiledSources" class="form-control form-control-sm" id="compiledSources" name="compiledSources" disabled>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-        <!-- End of Row 1, Column 1, Row 2-->
       </div>
+      <!-- End of Row 1, Column 1-->
+      <!-- Row 1, Column 2
+        -- This is the column for the event details
+        -- selected by the user from column 1 of
+        -- the same row. -->
+      <div class="col">
+        <table class="table table-hover" *ngIf="hasEvents">
+          <thead>
+            <tr class="d-flex">
+              <th scope="col" class="col-2">User</th>
+              <th scope="col" class="col-3">System-Zone</th>
+              <th scope="col" class="col-3">Event</th>
+              <th scope="col" class="col-2">Start Date</th>
+              <th scope="col" class="col-2">End Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="d-flex" *ngFor="let event of events; index as i" (click)="rowClicked(event._id)" [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="left">
+              <ng-template #popTitle>Options</ng-template>
+              <ng-template #popContent>
+                <small *ngIf="!isOnline">Please log in to access.</small>
+                <a class="pLink text-primary" (click)="editEvent(event._id)" *ngIf="isOnline">Edit</a>
+                <span *ngIf="isAdmin || openEventHistory">&nbsp;|&nbsp;</span>
+                <!-- <a class="pLink text-primary" (click)="deleteEvent(event._id)" *ngIf="isAdmin">Delete</a>
+                <span *ngIf="isAdmin">&nbsp;|&nbsp;</span> -->
+                <a class="pLink text-primary" (click)="eventHistory(event._id)" *ngIf="isAdmin || openEventHistory">History</a>
+              </ng-template>
+              <th class="col-2" scope="row"><a>{{ event.user }}</a></th>
+              <td class="col-3"><a>{{ event.system + '/' + event.zone }}</a></td>
+              <td class="col-3"><a>{{ event.type }}</a></td>
+              <td class="col-2"><a>{{ event.startDate }}</a></td>
+              <td class="col-2"><a>{{ event.endDate }}</a></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="container-fluid" *ngIf="!hasEvents">
+          <h6 class="list-title">There are no events for the day. Below are some of the things that you can do.</h6>
+          <ul class="list-group">
+            <li class="list-group-item">Grab a coffee. ☕</li>
+            <li class="list-group-item">Submit your timesheet &#8987;(if it's the end of week).</li>
+            <li class="list-group-item">Have a conversation with a friend. 🗣</li>
+            <li class="list-group-item">Help someone in need. 😢</li>
+            <li class="list-group-item">Cook a nice meal. 🍲</li>
+            <li class="list-group-item">Eat a bread with cheese. 🍞🧀</li>
+            <li class="list-group-item">Or continue waiting, maybe the events are yet to be loaded. ↻</li>
+          </ul>
+        </div>
+      </div>
+      <!-- End of Row 1, Column 2 -->
     </div>
-    <!-- End of Row 1, Column 1-->
-    <!-- Row 1, Column 2
-      -- This is the column for the event details
-      -- selected by the user from column 1 of
-      -- the same row. -->
-    <div class="col">
-      <table class="table table-hover" *ngIf="hasEvents">
-        <thead>
+    <!-- End of Row 1 -->
+  </div>
+  <div *ngIf="calendarHistory">
+    <div class="container-fluid">
+      <button class="btn btn-outline-primary btn-sm btn-block mb-2" type="button" (click)="closeHistory()">Back to calendar view</button>
+      <h5>History of Event#{{eventDetail._id}} on {{eventDetail.system}}/{{eventDetail.zone}}, created by {{eventDetail.createdBy}}</h5>
+      <table class="table table-hover table-sm" *ngIf="hasHistory">
+        <thead class="thead-light">
           <tr class="d-flex">
-            <th scope="col" class="col-2">User</th>
-            <th scope="col" class="col-3">System-Zone</th>
-            <th scope="col" class="col-3">Event</th>
-            <th scope="col" class="col-2">Start Date</th>
-            <th scope="col" class="col-2">End Date</th>
-            <!-- <th scope="col" class="col-3">API</th> -->
+            <th scope="col" class="col-1">Status</th>
+            <th scope="col" class="col-1">User</th>
+            <th scope="col" class="col-1">System</th>
+            <th scope="col" class="col-1">Zone</th>
+            <th scope="col" class="col-1">Event</th>
+            <th scope="col" class="col-1">Start Date</th>
+            <th scope="col" class="col-1">End Date</th>
+            <th scope="col" class="col-1">JIRA Case</th>
+            <th scope="col" class="col-1">API</th>
+            <th scope="col" class="col-1">Feature ON</th>
+            <th scope="col" class="col-1">Feature OFF</th>
+            <th scope="col" class="col-1">Compiled Sources</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="d-flex" *ngFor="let event of events; index as i" (click)="rowClicked(event._id)" [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="left">
-            <ng-template #popTitle>Options</ng-template>
-            <ng-template #popContent>
-              <small *ngIf="!isOnline">Please log in to access.</small>
-              <a class="pLink text-primary" (click)="editEvent(event._id)" *ngIf="isOnline">Edit</a>
-              &nbsp;&nbsp;&nbsp;
-              <a class="pLink text-primary" (click)="deleteEvent(event._id)" *ngIf="isAdmin">Delete</a>
-            </ng-template>
-            <th class="col-2" scope="row"><a>{{ event.user }}</a></th>
-            <td class="col-3"><a>{{ event.system + '/' + event.zone }}</a></td>
-            <td class="col-3"><a>{{ event.type }}</a></td>
-            <td class="col-2"><a>{{ event.startDate }}</a></td>
-            <td class="col-2"><a>{{ event.endDate }}</a></td>
-            <!-- <td class="col-3"><a>{{ event.apiUsed }}</a></td> -->
+          <tr class="d-flex" *ngFor="let item of history; index as i">
+            <th class="col-1" scope="row"><a>{{ item.status }}</a></th>
+            <td class="col-1"><a>{{ item.lastModifiedBy }}</a></td>
+            <td class="col-1"><a>{{ item.system }}</a></td>
+            <td class="col-1"><a>{{ item.zone }}</a></td>
+            <td class="col-1"><a>{{ item.type }}</a></td>
+            <td class="col-1"><a>{{ item.startDate }}</a></td>
+            <td class="col-1"><a>{{ item.endDate }}</a></td>
+            <td class="col-1"><a>{{ item.jiraCase }}</a></td>
+            <td class="col-1"><a>{{ item.apiUsed }}</a></td>
+            <td class="col-1"><a>{{ item.featureOn }}</a></td>
+            <td class="col-1"><a>{{ item.featureOff }}</a></td>
+            <td class="col-1"><a>{{ item.compiledSources }}</a></td>
           </tr>
         </tbody>
       </table>
-      <div class="container-fluid" *ngIf="!hasEvents">
-        <h6 class="list-title">There are no events for the day. Below are some of the things that you can do.</h6>
-        <ul class="list-group">
-          <li class="list-group-item">Grab a coffee. ☕</li>
-          <li class="list-group-item">Submit your timesheet &#8987;(if it's the end of week).</li>
-          <li class="list-group-item">Have a conversation with a friend. 🗣</li>
-          <li class="list-group-item">Help someone in need. 😢</li>
-          <li class="list-group-item">Cook a nice meal. 🍲</li>
-          <li class="list-group-item">Eat a bread with cheese. 🍞🧀</li>
-          <li class="list-group-item">Or continue waiting, maybe the events are yet to be loaded. ↻</li>
-        </ul>
+      <div class="d-flex justify-content-center mt-5">
+        <div class="spinner-border" role="status" *ngIf="!hasHistory">
+          <span class="sr-only">Loading...</span>
+        </div>
       </div>
     </div>
-    <!-- End of Row 1, Column 2 -->
   </div>
-  <!-- End of Row 1 -->
 </div>

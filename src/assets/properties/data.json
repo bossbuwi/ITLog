@@ -17,7 +17,8 @@
       "REST_GET_USERS": "/users",
       "REST_GET_ADMIN": "/admin",
       "REST_PUT_USERS": "/users",
-      "REST_GET_EVENT_TYPES": "/types"
+      "REST_GET_EVENT_TYPES": "/types",
+      "REST_GET_EVENT_HISTORY": "/history"
     }
   },
 
